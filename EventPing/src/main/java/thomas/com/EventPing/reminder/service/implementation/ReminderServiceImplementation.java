@@ -3,12 +3,15 @@ package thomas.com.EventPing.reminder.service.implementation;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import thomas.com.EventPing.reminder.model.Reminder;
 import thomas.com.EventPing.reminder.repository.ReminderRepository;
 import thomas.com.EventPing.reminder.service.ReminderService;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
@@ -17,6 +20,7 @@ import java.util.List;
 @Transactional
 public class ReminderServiceImplementation implements ReminderService {
     private final ReminderRepository reminderRepository;
+    private final JavaMailSender mailSender;
 
     @Override
     public void sendDueReminders() {
@@ -34,7 +38,7 @@ public class ReminderServiceImplementation implements ReminderService {
                     continue;
                 }
                 
-                // Send email (placeholder - actual email sending will be implemented later)
+                // Send email
                 sendEmail(reminder);
                 
                 // Mark as sent
@@ -61,11 +65,35 @@ public class ReminderServiceImplementation implements ReminderService {
     }
 
     private void sendEmail(Reminder reminder) {
-        // Placeholder for actual email sending
-        // TODO: Implement with JavaMailSender
-        log.info("EMAIL SENT: To={}, Event={}, SendAt={}", 
-                reminder.getParticipant().getEmail(),
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(reminder.getParticipant().getEmail());
+            message.setSubject("Reminder: " + reminder.getEvent().getTitle());
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a");
+            String eventTime = reminder.getEvent().getEventDateTime().format(formatter);
+            
+            String body = String.format(
+                "Hello,\n\n" +
+                "This is a reminder for the upcoming event:\n\n" +
+                "Event: %s\n" +
+                "Date & Time: %s\n" +
+                "Description: %s\n\n" +
+                "We look forward to seeing you there!\n\n" +
+                "---\n" +
+                "EventPing Reminder Service",
                 reminder.getEvent().getTitle(),
-                reminder.getSendAt());
+                eventTime,
+                reminder.getEvent().getDescription() != null ? reminder.getEvent().getDescription() : "No description"
+            );
+            
+            message.setText(body);
+            
+            mailSender.send(message);
+            log.info("Email sent successfully to {}", reminder.getParticipant().getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send email: {}", e.getMessage());
+            throw e;
+        }
     }
 }

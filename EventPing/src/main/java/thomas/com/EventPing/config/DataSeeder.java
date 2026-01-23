@@ -4,10 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import thomas.com.EventPing.plan.model.Plan;
 import thomas.com.EventPing.plan.repository.PlanRepository;
-
-import java.math.BigDecimal;
 
 @Slf4j
 @Component
@@ -17,36 +14,13 @@ public class DataSeeder {
 
     @PostConstruct
     public void seedDatabase() {
-        seedPlans();
-    }
-
-    private void seedPlans() {
-        // Seed FREE plan
-        if (planRepository.findByName(Plan.PlanName.FREE).isEmpty()) {
-            Plan freePlan = new Plan();
-            freePlan.setName(Plan.PlanName.FREE);
-            freePlan.setMaxEventsPerDay(3);
-            freePlan.setMaxParticipantsPerEvent(50);
-            freePlan.setReminderChannels("EMAIL");
-            freePlan.setPrice(BigDecimal.ZERO);
-            
-            planRepository.save(freePlan);
-            log.info("Seeded FREE plan");
+        // Plans are now seeded via Flyway migration V1__Initial_Schema.sql
+        // This seeder is kept for reference but won't insert duplicates
+        long planCount = planRepository.count();
+        if (planCount == 0) {
+            log.warn("No plans found in database - Flyway migration may not have run!");
+        } else {
+            log.info("Database already seeded with {} plans via Flyway", planCount);
         }
-
-        // Seed PRO plan
-        if (planRepository.findByName(Plan.PlanName.PRO).isEmpty()) {
-            Plan proPlan = new Plan();
-            proPlan.setName(Plan.PlanName.PRO);
-            proPlan.setMaxEventsPerDay(999);
-            proPlan.setMaxParticipantsPerEvent(500);
-            proPlan.setReminderChannels("EMAIL,WHATSAPP");
-            proPlan.setPrice(new BigDecimal("9.99"));
-            
-            planRepository.save(proPlan);
-            log.info("Seeded PRO plan");
-        }
-
-        log.info("Database seeding completed");
     }
 }

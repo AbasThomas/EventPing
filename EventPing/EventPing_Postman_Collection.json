@@ -1,0 +1,251 @@
+{
+  "info": {
+    "name": "EventPing API",
+    "description": "Complete API collection for EventPing reminder application",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"fullName\": \"John Doe\",\n  \"phoneNumber\": \"+1234567890\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/users",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "users"]
+        }
+      }
+    },
+    {
+      "name": "2. Create Event - Team Meeting",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Team Weekly Standup\",\n  \"description\": \"Weekly sync meeting to discuss progress and blockers\",\n  \"eventDateTime\": \"2026-01-25T10:00:00\",\n  \"reminderOffsetMinutes\": [60, 1440]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/events?userId=1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "events"],
+          "query": [
+            {
+              "key": "userId",
+              "value": "1",
+              "description": "ID of the event creator"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Create Event - Birthday Party",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Sarah's Birthday Celebration\",\n  \"description\": \"Join us for cake and fun! Location: Central Park\",\n  \"eventDateTime\": \"2026-01-28T18:00:00\",\n  \"reminderOffsetMinutes\": [120, 2880]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/events?userId=1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "events"],
+          "query": [
+            {
+              "key": "userId",
+              "value": "1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Get Event by Slug",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/events/{{eventSlug}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "events", "{{eventSlug}}"],
+          "variable": [
+            {
+              "key": "eventSlug",
+              "value": "abc12345",
+              "description": "Replace with actual slug from created event"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Get User's Events",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/events?userId=1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "events"],
+          "query": [
+            {
+              "key": "userId",
+              "value": "1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. Join Event - Participant 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"alice@example.com\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/participants/events/{{eventSlug}}/join?reminderOffsetMinutes=60,1440",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "participants", "events", "{{eventSlug}}", "join"],
+          "query": [
+            {
+              "key": "reminderOffsetMinutes",
+              "value": "60,1440",
+              "description": "1 hour and 1 day before"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "7. Join Event - Participant 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"bob@example.com\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/participants/events/{{eventSlug}}/join",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "participants", "events", "{{eventSlug}}", "join"]
+        }
+      }
+    },
+    {
+      "name": "8. Get Event Participants",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/participants/events/{{eventSlug}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "participants", "events", "{{eventSlug}}"]
+        }
+      }
+    },
+    {
+      "name": "9. Unsubscribe Participant",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/participants/{{participantId}}/unsubscribe",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "participants", "{{participantId}}", "unsubscribe"],
+          "variable": [
+            {
+              "key": "participantId",
+              "value": "1",
+              "description": "ID from join response"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "10. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/actuator/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["actuator", "health"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "eventSlug",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "participantId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

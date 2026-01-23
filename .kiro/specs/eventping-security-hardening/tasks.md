@@ -13,7 +13,7 @@ This implementation plan transforms the EventPing backend from a development pro
   - _Requirements: 12.1, 12.2, 12.5_
 
 - [-] 2. Implement core authentication service
-  - [ ] 2.1 Create JWT authentication service
+  - [x] 2.1 Create JWT authentication service
     - Implement JWT token generation with proper claims and expiration
     - Create token validation and parsing functionality
     - Add refresh token mechanism

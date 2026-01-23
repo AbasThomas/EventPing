@@ -1,0 +1,40 @@
+package thomas.com.EventPing.participant.model;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import thomas.com.EventPing.event.model.Event;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "participants")
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(exclude = {"event", "reminders"})
+public class Participant {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", nullable = false)
+    private Event event;
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column(name = "joined_at", nullable = false)
+    private LocalDateTime joinedAt = LocalDateTime.now();
+
+    @Column(nullable = false)
+    private Boolean unsubscribed = false;
+
+    @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<thomas.com.EventPing.reminder.model.Reminder> reminders = new ArrayList<>();
+}

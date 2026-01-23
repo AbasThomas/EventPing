@@ -1,0 +1,169 @@
+package thomas.com.EventPing.security.service;
+
+import io.jsonwebtoken.Claims;
+import net.jqwik.api.*;
+import net.jqwik.api.lifecycle.BeforeProperty;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import thomas.com.EventPing.User.model.User;
+import thomas.com.EventPing.config.SecurityProperties;
+import thomas.com.EventPing.security.dto.JwtToken;
+
+import java.time.LocalDateTime;
+
+/**
+ * Property-based tests for JWT Authentication Service
+ * **Feature: eventping-security-hardening, Property 1: Authentication Token Validity**
+ * **Validates: Requirements 1.2, 1.4**
+ */
+@SpringBootTest
+@ActiveProfiles("test")
+class JwtAuthenticationServicePropertyTest {
+
+    private JwtAuthenticationService jwtAuthenticationService;
+    private SecurityProperties securityProperties;
+
+    @BeforeProperty
+    void setUp() {
+        // Set up security properties for testing
+        securityProperties = new SecurityProperties();
+        SecurityProperties.Jwt jwt = new SecurityProperties.Jwt();
+        jwt.setSecret("testSecretKeyForTestingOnly123456789012345678901234567890");
+        jwt.setExpiration(3600000L); // 1 hour
+        jwt.setRefreshExpiration(86400000L); // 24 hours
+        jwt.setIssuer("EventPing");
+        jwt.setAudience("EventPing-Users");
+        securityProperties.setJwt(jwt);
+
+        jwtAuthenticationService = new JwtAuthenticationService(securityProperties);
+    }
+
+    /**
+     * Property 1: Authentication Token Validity
+     * For any valid user, the generated JWT token should be valid according to the configured 
+     * signing key and should contain all required claims (user ID, roles, expiration)
+     */
+    @Property(tries = 100)
+    @Label("For any valid user, generated JWT tokens should be valid and contain required claims")
+    void generatedTokensShouldBeValidAndContainRequiredClaims(
+            @ForAll("validUsers") User user) {
+        
+        // Generate token for the user
+        JwtToken jwtToken = jwtAuthenticationService.generateToken(user);
+        
+        // Verify token structure
+        Assertions.assertThat(jwtToken).isNotNull();
+        Assertions.assertThat(jwtToken.getAccessToken()).isNotNull().isNotEmpty();
+        Assertions.assertThat(jwtToken.getRefreshToken()).isNotNull().isNotEmpty();
+        Assertions.assertThat(jwtToken.getTokenType()).isEqualTo("Bearer");
+        Assertions.assertThat(jwtToken.getExpiresIn()).isPositive();
+        
+        // Validate access token
+        Claims accessClaims = jwtAuthenticationService.validateToken(jwtToken.getAccessToken());
+        
+        // Verify required claims are present
+        Assertions.assertThat(accessClaims.get("userId", Long.class)).isEqualTo(user.getId());
+        Assertions.assertThat(accessClaims.get("email", String.class)).isEqualTo(user.getEmail());
+        Assertions.assertThat(accessClaims.get("type", String.class)).isEqualTo("access");
+        Assertions.assertThat(accessClaims.getSubject()).isEqualTo(user.getEmail());
+        Assertions.assertThat(accessClaims.getIssuer()).isEqualTo("EventPing");
+        Assertions.assertThat(accessClaims.getAudience()).isEqualTo("EventPing-Users");
+        Assertions.assertThat(accessClaims.getIssuedAt()).isNotNull();
+        Assertions.assertThat(accessClaims.getExpiration()).isNotNull();
+        
+        // Verify token is not expired
+        Assertions.assertThat(jwtAuthenticationService.isTokenExpired(jwtToken.getAccessToken())).isFalse();
+        
+        // Verify user ID and email extraction
+        Assertions.assertThat(jwtAuthenticationService.extractUserId(jwtToken.getAccessToken())).isEqualTo(user.getId());
+        Assertions.assertThat(jwtAuthenticationService.extractEmail(jwtToken.getAccessToken())).isEqualTo(user.getEmail());
+    }
+
+    @Property(tries = 100)
+    @Label("For any valid refresh token, token refresh should generate new valid tokens")
+    void refreshTokenShouldGenerateNewValidTokens(@ForAll("validUsers") User user) {
+        
+        // Generate initial token
+        JwtToken initialToken = jwtAuthenticationService.generateToken(user);
+        
+        // Refresh the token
+        JwtToken refreshedToken = jwtAuthenticationService.refreshToken(initialToken.getRefreshToken());
+        
+        // Verify new token is valid
+        Assertions.assertThat(refreshedToken).isNotNull();
+        Assertions.assertThat(refreshedToken.getAccessToken()).isNotNull().isNotEmpty();
+        Assertions.assertThat(refreshedToken.getRefreshToken()).isNotNull().isNotEmpty();
+        
+        // Verify new tokens are different from original
+        Assertions.assertThat(refreshedToken.getAccessToken()).isNotEqualTo(initialToken.getAccessToken());
+        Assertions.assertThat(refreshedToken.getRefreshToken()).isNotEqualTo(initialToken.getRefreshToken());
+        
+        // Verify new access token is valid
+        Claims newClaims = jwtAuthenticationService.validateToken(refreshedToken.getAccessToken());
+        Assertions.assertThat(newClaims.get("userId", Long.class)).isEqualTo(user.getId());
+        Assertions.assertThat(newClaims.get("email", String.class)).isEqualTo(user.getEmail());
+        
+        // Verify old refresh token is blacklisted (should throw exception when used again)
+        Assertions.assertThatThrownBy(() -> 
+            jwtAuthenticationService.refreshToken(initialToken.getRefreshToken())
+        ).hasMessageContaining("blacklisted");
+    }
+
+    @Property(tries = 100)
+    @Label("For any valid token, blacklisting should prevent further use")
+    void blacklistedTokensShouldBeRejected(@ForAll("validUsers") User user) {
+        
+        // Generate token
+        JwtToken jwtToken = jwtAuthenticationService.generateToken(user);
+        
+        // Verify token is initially valid
+        Assertions.assertThatCode(() -> 
+            jwtAuthenticationService.validateToken(jwtToken.getAccessToken())
+        ).doesNotThrowAnyException();
+        
+        // Blacklist the token
+        jwtAuthenticationService.blacklistToken(jwtToken.getAccessToken());
+        
+        // Verify blacklisted token is rejected
+        Assertions.assertThatThrownBy(() -> 
+            jwtAuthenticationService.validateToken(jwtToken.getAccessToken())
+        ).hasMessageContaining("blacklisted");
+    }
+
+    @Property(tries = 50)
+    @Label("For any user, token expiration time should be correctly calculated")
+    void tokenExpirationShouldBeCorrectlyCalculated(@ForAll("validUsers") User user) {
+        
+        LocalDateTime beforeGeneration = LocalDateTime.now();
+        JwtToken jwtToken = jwtAuthenticationService.generateToken(user);
+        LocalDateTime afterGeneration = LocalDateTime.now();
+        
+        LocalDateTime tokenExpiration = jwtAuthenticationService.getTokenExpiration(jwtToken.getAccessToken());
+        
+        // Token expiration should be approximately 1 hour from now (configured expiration)
+        LocalDateTime expectedMinExpiration = beforeGeneration.plusSeconds(3590); // 59 minutes 50 seconds
+        LocalDateTime expectedMaxExpiration = afterGeneration.plusSeconds(3610); // 60 minutes 10 seconds
+        
+        Assertions.assertThat(tokenExpiration).isBetween(expectedMinExpiration, expectedMaxExpiration);
+    }
+
+    /**
+     * Generator for valid users
+     */
+    @Provide
+    Arbitrary<User> validUsers() {
+        return Combinators.combine(
+            Arbitraries.longs().between(1L, 1000000L),
+            Arbitraries.strings().alpha().ofMinLength(3).ofMaxLength(20),
+            Arbitraries.strings().alpha().ofMinLength(5).ofMaxLength(30)
+        ).as((id, name, emailPrefix) -> {
+            User user = new User();
+            user.setId(id);
+            user.setEmail(emailPrefix.toLowerCase() + "@example.com");
+            user.setFullName(name);
+            user.setCreatedAt(LocalDateTime.now());
+            user.setUpdatedAt(LocalDateTime.now());
+            return user;
+        });
+    }
+}

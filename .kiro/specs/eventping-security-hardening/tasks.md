@@ -19,7 +19,7 @@ This implementation plan transforms the EventPing backend from a development pro
     - Add refresh token mechanism
     - _Requirements: 1.2, 1.4_
 
-  - [ ] 2.2 Write property test for JWT authentication service
+  - [-] 2.2 Write property test for JWT authentication service
     - **Property 1: Authentication Token Validity**
     - **Validates: Requirements 1.2, 1.4**
 

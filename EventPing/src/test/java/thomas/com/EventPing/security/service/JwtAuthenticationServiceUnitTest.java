@@ -158,7 +158,13 @@ class JwtAuthenticationServiceUnitTest {
         // When & Then
         assertThatThrownBy(() -> jwtAuthenticationService.refreshToken(originalToken.getRefreshToken()))
                 .isInstanceOf(JwtException.class)
-                .hasMessageContaining("Refresh token has been blacklisted");
+                .hasMessageContaining("Failed to refresh token")
+                .hasCauseInstanceOf(JwtException.class);
+        
+        // Also verify the cause has the expected message
+        JwtException exception = catchThrowableOfType(() -> 
+            jwtAuthenticationService.refreshToken(originalToken.getRefreshToken()), JwtException.class);
+        assertThat(exception.getCause()).hasMessageContaining("Refresh token has been blacklisted");
     }
 
     @Test

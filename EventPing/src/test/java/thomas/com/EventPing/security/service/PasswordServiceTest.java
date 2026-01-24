@@ -166,8 +166,8 @@ class PasswordServiceTest {
     @Test
     @DisplayName("Should handle very long passwords")
     void shouldHandleVeryLongPasswords() {
-        // Given - BCrypt has a 72 byte limit, so test with a password just under that limit
-        String longPassword = "a".repeat(70) + "B1!";
+        // Given - BCrypt has a 72 byte limit, so test with a password exactly at that limit
+        String longPassword = "a".repeat(69) + "B1!"; // 69 + 3 = 72 bytes exactly
 
         // When
         String hashedPassword = passwordService.hashPassword(longPassword);

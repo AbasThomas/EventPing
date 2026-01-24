@@ -2,17 +2,19 @@ package thomas.com.EventPing.security.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import thomas.com.EventPing.security.service.InputValidationService;
 
 /**
  * Validator implementation for NoSqlInjection annotation
  * **Validates: Requirements 2.1, 2.2**
  */
-@RequiredArgsConstructor
+@Component
 public class NoSqlInjectionValidator implements ConstraintValidator<NoSqlInjection, String> {
 
-    private final InputValidationService inputValidationService;
+    @Autowired
+    private InputValidationService inputValidationService;
 
     @Override
     public void initialize(NoSqlInjection constraintAnnotation) {

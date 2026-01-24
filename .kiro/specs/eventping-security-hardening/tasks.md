@@ -82,13 +82,13 @@ This implementation plan transforms the EventPing backend from a development pro
     - _Requirements: 2.2, 2.3, 2.6_
 
 - [ ] 5. Implement rate limiting service
-  - [ ] 5.1 Create rate limiting service and entities
+  - [x] 5.1 Create rate limiting service and entities
     - Implement multi-tier rate limiting logic
     - Create RateLimitTracking entity for persistence
     - Add IP-based and user-based rate limiting
     - _Requirements: 3.1, 3.2, 3.4_
 
-  - [ ] 5.2 Write property test for rate limiting service
+  - [x] 5.2 Write property test for rate limiting service
     - **Property 4: Rate Limiting Enforcement**
     - **Validates: Requirements 3.1, 3.2**
 

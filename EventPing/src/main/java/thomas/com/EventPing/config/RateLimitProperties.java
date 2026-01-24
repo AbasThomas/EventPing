@@ -14,6 +14,8 @@ public class RateLimitProperties {
     private Global global = new Global();
     private Ip ip = new Ip();
     private User user = new User();
+    private Endpoint endpoint = new Endpoint();
+    private Plan plan = new Plan();
     private Registration registration = new Registration();
     private Login login = new Login();
     private EventCreation eventCreation = new EventCreation();
@@ -28,6 +30,7 @@ public class RateLimitProperties {
 
     @Data
     public static class Global {
+        private int requestsPerSecond = 100;
         private int requestsPerMinute = 1000;
         private int requestsPerHour = 10000;
     }
@@ -43,6 +46,19 @@ public class RateLimitProperties {
     public static class User {
         private int apiRequestsPerMinute = 60;
         private int apiRequestsPerHour = 1000;
+    }
+
+    @Data
+    public static class Endpoint {
+        private int requestsPerMinute = 200;
+        private int requestsPerHour = 2000;
+    }
+
+    @Data
+    public static class Plan {
+        private int basicRequestsPerHour = 500;
+        private int premiumRequestsPerHour = 2000;
+        private int enterpriseRequestsPerHour = 10000;
     }
 
     @Data

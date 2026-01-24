@@ -36,7 +36,7 @@ This implementation plan transforms the EventPing backend from a development pro
     - _Requirements: 1.1, 1.2, 1.3_
 
 - [ ] 3. Implement authorization service and security configuration
-  - [ ] 3.1 Create authorization service
+  - [-] 3.1 Create authorization service
     - Implement resource ownership validation
     - Create role-based permission checking
     - Add method-level security support

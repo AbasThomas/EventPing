@@ -92,13 +92,13 @@ This implementation plan transforms the EventPing backend from a development pro
     - **Property 4: Rate Limiting Enforcement**
     - **Validates: Requirements 3.1, 3.2**
 
-  - [ ] 5.3 Create rate limiting filter and annotations
+  - [x] 5.3 Create rate limiting filter and annotations
     - Implement servlet filter for rate limiting
     - Create @RateLimit annotation for controllers
     - Add plan-based quota enforcement
     - _Requirements: 3.1, 3.6_
 
-  - [ ] 5.4 Write integration tests for rate limiting
+  - [x] 5.4 Write integration tests for rate limiting
     - Test rate limiting under concurrent requests
     - Test IP blocking functionality
     - Test plan-specific quota enforcement

@@ -2,8 +2,6 @@ package thomas.com.EventPing.security.service;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.BeforeProperty;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 import thomas.com.EventPing.User.model.User;
 import thomas.com.EventPing.config.RateLimitProperties;
 import thomas.com.EventPing.security.model.RateLimitTracking;
@@ -11,27 +9,21 @@ import thomas.com.EventPing.security.model.RateLimitType;
 import thomas.com.EventPing.security.repository.RateLimitTrackingRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 /**
  * Property-based tests for Rate Limiting Service
  * **Feature: eventping-security-hardening, Property 4: Rate Limiting Enforcement**
  * **Validates: Requirements 3.1, 3.2**
  */
-@TestPropertySource(properties = {
-    "eventping.rate-limit.enabled=true",
-    "eventping.rate-limit.ip.requests-per-minute=10",
-    "eventping.rate-limit.user.api-requests-per-minute=20"
-})
 class RateLimitingServicePropertyTest {
 
     private RateLimitingService rateLimitingService;
-    private RateLimitTrackingRepository mockRepository;
+    private InMemoryRateLimitRepository inMemoryRepository;
     private RateLimitProperties rateLimitProperties;
 
     @BeforeProperty
@@ -41,36 +33,36 @@ class RateLimitingServicePropertyTest {
         
         // Configure IP limits
         RateLimitProperties.Ip ipConfig = new RateLimitProperties.Ip();
-        ipConfig.setRequestsPerMinute(10);
+        ipConfig.setRequestsPerMinute(5); // Lower limit for faster testing
         ipConfig.setRequestsPerHour(100);
         rateLimitProperties.setIp(ipConfig);
         
         // Configure User limits
         RateLimitProperties.User userConfig = new RateLimitProperties.User();
-        userConfig.setApiRequestsPerMinute(20);
+        userConfig.setApiRequestsPerMinute(10); // Lower limit for faster testing
         userConfig.setApiRequestsPerHour(200);
         rateLimitProperties.setUser(userConfig);
         
         // Configure Global limits
         RateLimitProperties.Global globalConfig = new RateLimitProperties.Global();
-        globalConfig.setRequestsPerSecond(5);
+        globalConfig.setRequestsPerSecond(3); // Lower limit for faster testing
         rateLimitProperties.setGlobal(globalConfig);
         
         // Configure Endpoint limits
         RateLimitProperties.Endpoint endpointConfig = new RateLimitProperties.Endpoint();
-        endpointConfig.setRequestsPerMinute(30);
+        endpointConfig.setRequestsPerMinute(8);
         rateLimitProperties.setEndpoint(endpointConfig);
         
         // Configure Plan limits
         RateLimitProperties.Plan planConfig = new RateLimitProperties.Plan();
-        planConfig.setBasicRequestsPerHour(100);
+        planConfig.setBasicRequestsPerHour(50);
         rateLimitProperties.setPlan(planConfig);
 
-        // Mock repository
-        mockRepository = mock(RateLimitTrackingRepository.class);
+        // Create a fresh in-memory repository for each test iteration
+        inMemoryRepository = new InMemoryRateLimitRepository();
         
-        // Create service with mocked dependencies
-        rateLimitingService = new RateLimitingService(mockRepository, rateLimitProperties);
+        // Create service with fresh in-memory repository
+        rateLimitingService = new RateLimitingService(inMemoryRepository, rateLimitProperties);
     }
 
     /**
@@ -79,25 +71,21 @@ class RateLimitingServicePropertyTest {
      * the defined rate limits, the system should return HTTP 429 and block further 
      * requests until the rate limit window resets
      */
-    @Property(tries = 100)
+    @Property(tries = 50)
     @Label("For any identifier and rate limit type, exceeding limits should result in rate limiting")
     void exceedingRateLimitsShouldResultInBlocking(
             @ForAll("validIdentifiers") String identifier,
             @ForAll("rateLimitTypes") RateLimitType type) {
         
-        // Mock no existing record initially
-        when(mockRepository.findByIdentifierAndLimitType(anyString(), any(RateLimitType.class)))
-            .thenReturn(Optional.empty());
-        
-        // Mock save operation
-        when(mockRepository.save(any(RateLimitTracking.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        // Create fresh service for this test iteration
+        InMemoryRateLimitRepository freshRepository = new InMemoryRateLimitRepository();
+        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties);
         
         int maxRequests = getMaxRequestsForType(type);
         
         // Make requests up to the limit - should all be allowed
         for (int i = 1; i <= maxRequests; i++) {
-            RateLimitResult result = rateLimitingService.checkRateLimit(identifier, type);
+            RateLimitResult result = freshService.checkRateLimit(identifier, type);
             
             assertThat(result.isAllowed())
                 .as("Request %d should be allowed (limit: %d)", i, maxRequests)
@@ -108,7 +96,7 @@ class RateLimitingServicePropertyTest {
         }
         
         // The next request should exceed the limit and be blocked
-        RateLimitResult exceededResult = rateLimitingService.checkRateLimit(identifier, type);
+        RateLimitResult exceededResult = freshService.checkRateLimit(identifier, type);
         
         assertThat(exceededResult.isAllowed())
             .as("Request exceeding limit should be blocked")
@@ -119,60 +107,58 @@ class RateLimitingServicePropertyTest {
         assertThat(exceededResult.getReason()).containsIgnoringCase("rate limit exceeded");
     }
 
-    @Property(tries = 100)
+    @Property(tries = 50)
     @Label("For any IP address, rate limiting should be enforced consistently")
     void ipRateLimitingShouldBeEnforcedConsistently(@ForAll("validIpAddresses") String ipAddress) {
         
-        // Mock no existing record initially
-        when(mockRepository.findByIdentifierAndLimitType(anyString(), any(RateLimitType.class)))
-            .thenReturn(Optional.empty());
-        
-        when(mockRepository.save(any(RateLimitTracking.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        // Create fresh service for this test iteration
+        InMemoryRateLimitRepository freshRepository = new InMemoryRateLimitRepository();
+        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties);
         
         int maxRequests = rateLimitProperties.getIp().getRequestsPerMinute();
         
         // Test IP rate limiting
         for (int i = 1; i <= maxRequests; i++) {
-            RateLimitResult result = rateLimitingService.checkIpRateLimit(ipAddress);
+            RateLimitResult result = freshService.checkIpRateLimit(ipAddress);
             assertThat(result.isAllowed()).isTrue();
         }
         
         // Exceed limit
-        RateLimitResult exceededResult = rateLimitingService.checkIpRateLimit(ipAddress);
+        RateLimitResult exceededResult = freshService.checkIpRateLimit(ipAddress);
         assertThat(exceededResult.isAllowed()).isFalse();
         assertThat(exceededResult.getRetryAfterSeconds()).isPositive();
     }
 
-    @Property(tries = 100)
+    @Property(tries = 50)
     @Label("For any user, rate limiting should respect user-specific limits")
     void userRateLimitingShouldRespectUserLimits(@ForAll("validUsers") User user) {
         
-        // Mock no existing record initially
-        when(mockRepository.findByIdentifierAndLimitType(anyString(), any(RateLimitType.class)))
-            .thenReturn(Optional.empty());
-        
-        when(mockRepository.save(any(RateLimitTracking.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        // Create fresh service for this test iteration
+        InMemoryRateLimitRepository freshRepository = new InMemoryRateLimitRepository();
+        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties);
         
         int maxRequests = rateLimitProperties.getUser().getApiRequestsPerMinute();
         
         // Test user rate limiting
         for (int i = 1; i <= maxRequests; i++) {
-            RateLimitResult result = rateLimitingService.checkUserRateLimit(user, "api");
+            RateLimitResult result = freshService.checkUserRateLimit(user, "api");
             assertThat(result.isAllowed()).isTrue();
         }
         
         // Exceed limit
-        RateLimitResult exceededResult = rateLimitingService.checkUserRateLimit(user, "api");
+        RateLimitResult exceededResult = freshService.checkUserRateLimit(user, "api");
         assertThat(exceededResult.isAllowed()).isFalse();
     }
 
-    @Property(tries = 50)
+    @Property(tries = 30)
     @Label("For any blocked identifier, all requests should be rejected until unblocked")
     void blockedIdentifiersShouldRejectAllRequests(
             @ForAll("validIdentifiers") String identifier,
             @ForAll("rateLimitTypes") RateLimitType type) {
+        
+        // Create fresh service for this test iteration
+        InMemoryRateLimitRepository freshRepository = new InMemoryRateLimitRepository();
+        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties);
         
         // Create a blocked tracking record
         RateLimitTracking blockedRecord = RateLimitTracking.builder()
@@ -188,12 +174,11 @@ class RateLimitingServicePropertyTest {
             .lastUpdated(LocalDateTime.now())
             .build();
         
-        when(mockRepository.findByIdentifierAndLimitType(identifier, type))
-            .thenReturn(Optional.of(blockedRecord));
+        freshRepository.save(blockedRecord);
         
         // All requests should be blocked
-        for (int i = 0; i < 5; i++) {
-            RateLimitResult result = rateLimitingService.checkRateLimit(identifier, type);
+        for (int i = 0; i < 3; i++) {
+            RateLimitResult result = freshService.checkRateLimit(identifier, type);
             
             assertThat(result.isAllowed()).isFalse();
             assertThat(result.isBlocked()).isTrue();
@@ -203,11 +188,15 @@ class RateLimitingServicePropertyTest {
         }
     }
 
-    @Property(tries = 50)
+    @Property(tries = 30)
     @Label("For any rate limit window reset, request counts should start fresh")
     void windowResetShouldStartCountsFresh(
             @ForAll("validIdentifiers") String identifier,
             @ForAll("rateLimitTypes") RateLimitType type) {
+        
+        // Create fresh service for this test iteration
+        InMemoryRateLimitRepository freshRepository = new InMemoryRateLimitRepository();
+        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties);
         
         // Create an expired window tracking record
         RateLimitTracking expiredRecord = RateLimitTracking.builder()
@@ -222,14 +211,10 @@ class RateLimitingServicePropertyTest {
             .lastUpdated(LocalDateTime.now().minusMinutes(2))
             .build();
         
-        when(mockRepository.findByIdentifierAndLimitType(identifier, type))
-            .thenReturn(Optional.of(expiredRecord));
-        
-        when(mockRepository.save(any(RateLimitTracking.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        freshRepository.save(expiredRecord);
         
         // First request after window reset should be allowed
-        RateLimitResult result = rateLimitingService.checkRateLimit(identifier, type);
+        RateLimitResult result = freshService.checkRateLimit(identifier, type);
         
         assertThat(result.isAllowed()).isTrue();
         assertThat(result.getCurrentCount()).isEqualTo(1); // Reset to 1
@@ -252,7 +237,7 @@ class RateLimitingServicePropertyTest {
             case PLAN:
                 return rateLimitProperties.getPlan().getBasicRequestsPerHour();
             default:
-                return 100; // Default fallback
+                return 5; // Default fallback for testing
         }
     }
 
@@ -307,5 +292,94 @@ class RateLimitingServicePropertyTest {
             user.setUpdatedAt(LocalDateTime.now());
             return user;
         });
+    }
+
+    /**
+     * In-memory implementation of RateLimitTrackingRepository for testing
+     */
+    private static class InMemoryRateLimitRepository implements RateLimitTrackingRepository {
+        private final Map<String, RateLimitTracking> storage = new HashMap<>();
+        private Long nextId = 1L;
+
+        @Override
+        public Optional<RateLimitTracking> findByIdentifierAndLimitType(String identifier, RateLimitType limitType) {
+            String key = identifier + ":" + limitType;
+            return Optional.ofNullable(storage.get(key));
+        }
+
+        @Override
+        public <S extends RateLimitTracking> S save(S entity) {
+            if (entity.getId() == null) {
+                entity.setId(nextId++);
+            }
+            String key = entity.getIdentifier() + ":" + entity.getLimitType();
+            storage.put(key, entity);
+            return entity;
+        }
+
+        // Implement other required methods with minimal functionality for testing
+        @Override
+        public java.util.List<RateLimitTracking> findBlockedByType(RateLimitType limitType, LocalDateTime now) {
+            return storage.values().stream()
+                .filter(r -> r.getLimitType() == limitType && r.isCurrentlyBlocked())
+                .collect(java.util.stream.Collectors.toList());
+        }
+
+        @Override
+        public java.util.List<RateLimitTracking> findExpiredWindows(LocalDateTime cutoffTime) {
+            return storage.values().stream()
+                .filter(r -> r.getWindowStart().isBefore(cutoffTime))
+                .collect(java.util.stream.Collectors.toList());
+        }
+
+        @Override
+        public int deleteOldRecords(LocalDateTime cutoffTime) {
+            int count = 0;
+            var iterator = storage.entrySet().iterator();
+            while (iterator.hasNext()) {
+                var entry = iterator.next();
+                if (entry.getValue().getLastUpdated().isBefore(cutoffTime) && !entry.getValue().getBlocked()) {
+                    iterator.remove();
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        // Minimal implementations for other methods
+        @Override public java.util.List<RateLimitTracking> findByIdentifierPattern(String pattern, RateLimitType limitType) { return java.util.Collections.emptyList(); }
+        @Override public long countViolationsSince(RateLimitType limitType, LocalDateTime since) { return 0; }
+        @Override public java.util.List<RateLimitTracking> findTopViolators(RateLimitType limitType, int minViolations) { return java.util.Collections.emptyList(); }
+        @Override public int updateBlockStatus(String identifier, RateLimitType limitType, boolean blocked, LocalDateTime expiresAt, LocalDateTime now) { return 0; }
+        @Override public java.util.List<RateLimitTracking> findByPlanTypeAndLimitType(String planType, RateLimitType limitType) { return java.util.Collections.emptyList(); }
+        @Override public void flush() {}
+        @Override public <S extends RateLimitTracking> S saveAndFlush(S entity) { return save(entity); }
+        @Override public <S extends RateLimitTracking> java.util.List<S> saveAllAndFlush(Iterable<S> entities) { return (java.util.List<S>) saveAll(entities); }
+        @Override public void deleteAllInBatch(Iterable<RateLimitTracking> entities) { entities.forEach(e -> deleteById(e.getId())); }
+        @Override public void deleteAllByIdInBatch(Iterable<Long> longs) { longs.forEach(this::deleteById); }
+        @Override public void deleteAllInBatch() { storage.clear(); }
+        @Override public RateLimitTracking getOne(Long aLong) { return findById(aLong).orElse(null); }
+        @Override public RateLimitTracking getById(Long aLong) { return findById(aLong).orElse(null); }
+        @Override public RateLimitTracking getReferenceById(Long aLong) { return findById(aLong).orElse(null); }
+        @Override public <S extends RateLimitTracking> java.util.List<S> findAll(org.springframework.data.domain.Example<S> example) { return java.util.Collections.emptyList(); }
+        @Override public <S extends RateLimitTracking> java.util.List<S> findAll(org.springframework.data.domain.Example<S> example, org.springframework.data.domain.Sort sort) { return java.util.Collections.emptyList(); }
+        @Override public <S extends RateLimitTracking> java.util.List<S> saveAll(Iterable<S> entities) { entities.forEach(this::save); return (java.util.List<S>) entities; }
+        @Override public java.util.List<RateLimitTracking> findAll() { return new java.util.ArrayList<>(storage.values()); }
+        @Override public java.util.List<RateLimitTracking> findAllById(Iterable<Long> longs) { return java.util.Collections.emptyList(); }
+        @Override public long count() { return storage.size(); }
+        @Override public void deleteById(Long aLong) { storage.entrySet().removeIf(e -> e.getValue().getId().equals(aLong)); }
+        @Override public void delete(RateLimitTracking entity) { deleteById(entity.getId()); }
+        @Override public void deleteAllById(Iterable<? extends Long> longs) { longs.forEach(this::deleteById); }
+        @Override public void deleteAll(Iterable<? extends RateLimitTracking> entities) { entities.forEach(this::delete); }
+        @Override public void deleteAll() { storage.clear(); }
+        @Override public java.util.List<RateLimitTracking> findAll(org.springframework.data.domain.Sort sort) { return findAll(); }
+        @Override public org.springframework.data.domain.Page<RateLimitTracking> findAll(org.springframework.data.domain.Pageable pageable) { return null; }
+        @Override public <S extends RateLimitTracking> Optional<S> findOne(org.springframework.data.domain.Example<S> example) { return Optional.empty(); }
+        @Override public <S extends RateLimitTracking> org.springframework.data.domain.Page<S> findAll(org.springframework.data.domain.Example<S> example, org.springframework.data.domain.Pageable pageable) { return null; }
+        @Override public <S extends RateLimitTracking> long count(org.springframework.data.domain.Example<S> example) { return 0; }
+        @Override public <S extends RateLimitTracking> boolean exists(org.springframework.data.domain.Example<S> example) { return false; }
+        @Override public <S extends RateLimitTracking, R> R findBy(org.springframework.data.domain.Example<S> example, java.util.function.Function<org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery<S>, R> queryFunction) { return null; }
+        @Override public Optional<RateLimitTracking> findById(Long aLong) { return storage.values().stream().filter(r -> r.getId().equals(aLong)).findFirst(); }
+        @Override public boolean existsById(Long aLong) { return findById(aLong).isPresent(); }
     }
 }

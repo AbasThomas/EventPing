@@ -47,29 +47,31 @@ public class JwtAuthenticationService {
 
             // Generate access token
             String accessToken = Jwts.builder()
-                    .setClaims(claims)
-                    .setSubject(user.getEmail())
-                    .setIssuer(securityProperties.getJwt().getIssuer())
-                    .setAudience(securityProperties.getJwt().getAudience())
-                    .setIssuedAt(now)
-                    .setExpiration(expirationDate)
+                    .claims(claims)
+                    .subject(user.getEmail())
+                    .issuer(securityProperties.getJwt().getIssuer())
+                    .audience().add(securityProperties.getJwt().getAudience()).and()
+                    .issuedAt(now)
+                    .expiration(expirationDate)
                     .signWith(getSigningKey())
                     .compact();
 
-            // Create refresh token claims
+            // Create refresh token claims with unique identifier
             Map<String, Object> refreshClaims = new HashMap<>();
             refreshClaims.put("userId", user.getId());
             refreshClaims.put("email", user.getEmail());
             refreshClaims.put("type", "refresh");
+            refreshClaims.put("tokenId", java.util.UUID.randomUUID().toString()); // Add unique identifier
 
-            // Generate refresh token
+            // Generate refresh token with slightly different timestamp to ensure uniqueness
+            Date refreshIssuedAt = new Date(now.getTime() + 1); // Add 1ms to ensure different timestamp
             String refreshToken = Jwts.builder()
-                    .setClaims(refreshClaims)
-                    .setSubject(user.getEmail())
-                    .setIssuer(securityProperties.getJwt().getIssuer())
-                    .setAudience(securityProperties.getJwt().getAudience())
-                    .setIssuedAt(now)
-                    .setExpiration(refreshExpirationDate)
+                    .claims(refreshClaims)
+                    .subject(user.getEmail())
+                    .issuer(securityProperties.getJwt().getIssuer())
+                    .audience().add(securityProperties.getJwt().getAudience()).and()
+                    .issuedAt(refreshIssuedAt)
+                    .expiration(refreshExpirationDate)
                     .signWith(getSigningKey())
                     .compact();
 
@@ -100,13 +102,24 @@ public class JwtAuthenticationService {
             }
 
             // Parse and validate token
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .requireIssuer(securityProperties.getJwt().getIssuer())
-                    .requireAudience(securityProperties.getJwt().getAudience())
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            // Manual validation of issuer and audience
+            if (!securityProperties.getJwt().getIssuer().equals(claims.getIssuer())) {
+                throw new JwtException("Invalid issuer: " + claims.getIssuer());
+            }
+            
+            // Handle audience as Set<String> in newer JJWT versions
+            Set<String> audienceSet = claims.getAudience();
+            String expectedAudience = securityProperties.getJwt().getAudience();
+            
+            if (audienceSet == null || !audienceSet.contains(expectedAudience)) {
+                throw new JwtException("Invalid audience: " + audienceSet);
+            }
 
             // Validate token type
             String tokenType = claims.get("type", String.class);
@@ -147,13 +160,24 @@ public class JwtAuthenticationService {
             }
 
             // Parse refresh token
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .requireIssuer(securityProperties.getJwt().getIssuer())
-                    .requireAudience(securityProperties.getJwt().getAudience())
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
                     .build()
-                    .parseClaimsJws(refreshToken)
-                    .getBody();
+                    .parseSignedClaims(refreshToken)
+                    .getPayload();
+
+            // Manual validation of issuer and audience
+            if (!securityProperties.getJwt().getIssuer().equals(claims.getIssuer())) {
+                throw new JwtException("Invalid issuer: " + claims.getIssuer());
+            }
+            
+            // Handle audience as Set<String> in newer JJWT versions
+            Set<String> audienceSet = claims.getAudience();
+            String expectedAudience = securityProperties.getJwt().getAudience();
+            
+            if (audienceSet == null || !audienceSet.contains(expectedAudience)) {
+                throw new JwtException("Invalid audience: " + audienceSet);
+            }
 
             // Validate token type
             String tokenType = claims.get("type", String.class);
@@ -250,13 +274,11 @@ public class JwtAuthenticationService {
      * Validate token without checking blacklist (internal use)
      */
     private Claims validateTokenWithoutBlacklistCheck(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .requireIssuer(securityProperties.getJwt().getIssuer())
-                .requireAudience(securityProperties.getJwt().getAudience())
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /**
@@ -283,5 +305,13 @@ public class JwtAuthenticationService {
             }
         });
         log.debug("Cleaned up expired tokens from blacklist");
+    }
+
+    /**
+     * Clear all blacklisted tokens (for testing purposes)
+     */
+    public void clearBlacklist() {
+        blacklistedTokens.clear();
+        log.debug("Cleared all blacklisted tokens");
     }
 }

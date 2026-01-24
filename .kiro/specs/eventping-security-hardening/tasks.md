@@ -19,17 +19,17 @@ This implementation plan transforms the EventPing backend from a development pro
     - Add refresh token mechanism
     - _Requirements: 1.2, 1.4_
 
-  - [-] 2.2 Write property test for JWT authentication service
+  - [x] 2.2 Write property test for JWT authentication service
     - **Property 1: Authentication Token Validity**
     - **Validates: Requirements 1.2, 1.4**
 
-  - [ ] 2.3 Create user authentication entities and DTOs
+  - [x] 2.3 Create user authentication entities and DTOs
     - Add password hashing to User entity
     - Create authentication request/response DTOs
     - Add user roles and account status fields
     - _Requirements: 1.1, 1.3_
 
-  - [ ] 2.4 Write unit tests for authentication components
+  - [-] 2.4 Write unit tests for authentication components
     - Test JWT token generation and validation
     - Test password hashing and verification
     - Test authentication failure scenarios

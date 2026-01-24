@@ -1,23 +1,22 @@
 package thomas.com.EventPing.security.service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.BeforeProperty;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import thomas.com.EventPing.User.model.User;
 import thomas.com.EventPing.config.SecurityProperties;
 import thomas.com.EventPing.security.dto.JwtToken;
 
 import java.time.LocalDateTime;
 
+import static org.assertj.core.api.Assertions.*;
+
 /**
  * Property-based tests for JWT Authentication Service
  * **Feature: eventping-security-hardening, Property 1: Authentication Token Validity**
  * **Validates: Requirements 1.2, 1.4**
  */
-@SpringBootTest
-@ActiveProfiles("test")
 class JwtAuthenticationServicePropertyTest {
 
     private JwtAuthenticationService jwtAuthenticationService;
@@ -36,6 +35,9 @@ class JwtAuthenticationServicePropertyTest {
         securityProperties.setJwt(jwt);
 
         jwtAuthenticationService = new JwtAuthenticationService(securityProperties);
+        
+        // Clear blacklist before each test to avoid interference
+        jwtAuthenticationService.clearBlacklist();
     }
 
     /**
@@ -52,81 +54,93 @@ class JwtAuthenticationServicePropertyTest {
         JwtToken jwtToken = jwtAuthenticationService.generateToken(user);
         
         // Verify token structure
-        Assertions.assertThat(jwtToken).isNotNull();
-        Assertions.assertThat(jwtToken.getAccessToken()).isNotNull().isNotEmpty();
-        Assertions.assertThat(jwtToken.getRefreshToken()).isNotNull().isNotEmpty();
-        Assertions.assertThat(jwtToken.getTokenType()).isEqualTo("Bearer");
-        Assertions.assertThat(jwtToken.getExpiresIn()).isPositive();
+        assertThat(jwtToken).isNotNull();
+        assertThat(jwtToken.getAccessToken()).isNotNull().isNotEmpty();
+        assertThat(jwtToken.getRefreshToken()).isNotNull().isNotEmpty();
+        assertThat(jwtToken.getTokenType()).isEqualTo("Bearer");
+        assertThat(jwtToken.getExpiresIn()).isPositive();
         
         // Validate access token
         Claims accessClaims = jwtAuthenticationService.validateToken(jwtToken.getAccessToken());
         
         // Verify required claims are present
-        Assertions.assertThat(accessClaims.get("userId", Long.class)).isEqualTo(user.getId());
-        Assertions.assertThat(accessClaims.get("email", String.class)).isEqualTo(user.getEmail());
-        Assertions.assertThat(accessClaims.get("type", String.class)).isEqualTo("access");
-        Assertions.assertThat(accessClaims.getSubject()).isEqualTo(user.getEmail());
-        Assertions.assertThat(accessClaims.getIssuer()).isEqualTo("EventPing");
-        Assertions.assertThat(accessClaims.getAudience()).isEqualTo("EventPing-Users");
-        Assertions.assertThat(accessClaims.getIssuedAt()).isNotNull();
-        Assertions.assertThat(accessClaims.getExpiration()).isNotNull();
+        assertThat(accessClaims.get("userId", Long.class)).isEqualTo(user.getId());
+        assertThat(accessClaims.get("email", String.class)).isEqualTo(user.getEmail());
+        assertThat(accessClaims.get("type", String.class)).isEqualTo("access");
+        assertThat(accessClaims.getSubject()).isEqualTo(user.getEmail());
+        assertThat(accessClaims.getIssuer()).isEqualTo("EventPing");
+        assertThat(accessClaims.getAudience()).contains("EventPing-Users");
+        assertThat(accessClaims.getIssuedAt()).isNotNull();
+        assertThat(accessClaims.getExpiration()).isNotNull();
         
         // Verify token is not expired
-        Assertions.assertThat(jwtAuthenticationService.isTokenExpired(jwtToken.getAccessToken())).isFalse();
+        assertThat(jwtAuthenticationService.isTokenExpired(jwtToken.getAccessToken())).isFalse();
         
         // Verify user ID and email extraction
-        Assertions.assertThat(jwtAuthenticationService.extractUserId(jwtToken.getAccessToken())).isEqualTo(user.getId());
-        Assertions.assertThat(jwtAuthenticationService.extractEmail(jwtToken.getAccessToken())).isEqualTo(user.getEmail());
+        assertThat(jwtAuthenticationService.extractUserId(jwtToken.getAccessToken())).isEqualTo(user.getId());
+        assertThat(jwtAuthenticationService.extractEmail(jwtToken.getAccessToken())).isEqualTo(user.getEmail());
     }
 
     @Property(tries = 100)
     @Label("For any valid refresh token, token refresh should generate new valid tokens")
     void refreshTokenShouldGenerateNewValidTokens(@ForAll("validUsers") User user) {
         
+        // Create a fresh service instance for this test iteration to avoid state sharing
+        JwtAuthenticationService freshService = new JwtAuthenticationService(securityProperties);
+        
         // Generate initial token
-        JwtToken initialToken = jwtAuthenticationService.generateToken(user);
+        JwtToken initialToken = freshService.generateToken(user);
         
         // Refresh the token
-        JwtToken refreshedToken = jwtAuthenticationService.refreshToken(initialToken.getRefreshToken());
+        JwtToken refreshedToken = freshService.refreshToken(initialToken.getRefreshToken());
         
         // Verify new token is valid
-        Assertions.assertThat(refreshedToken).isNotNull();
-        Assertions.assertThat(refreshedToken.getAccessToken()).isNotNull().isNotEmpty();
-        Assertions.assertThat(refreshedToken.getRefreshToken()).isNotNull().isNotEmpty();
+        assertThat(refreshedToken).isNotNull();
+        assertThat(refreshedToken.getAccessToken()).isNotNull().isNotEmpty();
+        assertThat(refreshedToken.getRefreshToken()).isNotNull().isNotEmpty();
         
         // Verify new tokens are different from original
-        Assertions.assertThat(refreshedToken.getAccessToken()).isNotEqualTo(initialToken.getAccessToken());
-        Assertions.assertThat(refreshedToken.getRefreshToken()).isNotEqualTo(initialToken.getRefreshToken());
+        assertThat(refreshedToken.getAccessToken()).isNotEqualTo(initialToken.getAccessToken());
+        assertThat(refreshedToken.getRefreshToken()).isNotEqualTo(initialToken.getRefreshToken());
         
         // Verify new access token is valid
-        Claims newClaims = jwtAuthenticationService.validateToken(refreshedToken.getAccessToken());
-        Assertions.assertThat(newClaims.get("userId", Long.class)).isEqualTo(user.getId());
-        Assertions.assertThat(newClaims.get("email", String.class)).isEqualTo(user.getEmail());
+        Claims newClaims = freshService.validateToken(refreshedToken.getAccessToken());
+        assertThat(newClaims.get("userId", Long.class)).isEqualTo(user.getId());
+        assertThat(newClaims.get("email", String.class)).isEqualTo(user.getEmail());
         
         // Verify old refresh token is blacklisted (should throw exception when used again)
-        Assertions.assertThatThrownBy(() -> 
-            jwtAuthenticationService.refreshToken(initialToken.getRefreshToken())
-        ).hasMessageContaining("blacklisted");
+        assertThatThrownBy(() -> 
+            freshService.refreshToken(initialToken.getRefreshToken())
+        ).isInstanceOf(JwtException.class)
+         .satisfies(ex -> {
+             // Check either the main message or the cause message contains "blacklisted"
+             String message = ex.getMessage();
+             String causeMessage = ex.getCause() != null ? ex.getCause().getMessage() : "";
+             assertThat(message + " " + causeMessage).containsIgnoringCase("blacklisted");
+         });
     }
 
     @Property(tries = 100)
     @Label("For any valid token, blacklisting should prevent further use")
     void blacklistedTokensShouldBeRejected(@ForAll("validUsers") User user) {
         
+        // Create a fresh service instance for this test iteration to avoid state sharing
+        JwtAuthenticationService freshService = new JwtAuthenticationService(securityProperties);
+        
         // Generate token
-        JwtToken jwtToken = jwtAuthenticationService.generateToken(user);
+        JwtToken jwtToken = freshService.generateToken(user);
         
         // Verify token is initially valid
-        Assertions.assertThatCode(() -> 
-            jwtAuthenticationService.validateToken(jwtToken.getAccessToken())
+        assertThatCode(() -> 
+            freshService.validateToken(jwtToken.getAccessToken())
         ).doesNotThrowAnyException();
         
         // Blacklist the token
-        jwtAuthenticationService.blacklistToken(jwtToken.getAccessToken());
+        freshService.blacklistToken(jwtToken.getAccessToken());
         
         // Verify blacklisted token is rejected
-        Assertions.assertThatThrownBy(() -> 
-            jwtAuthenticationService.validateToken(jwtToken.getAccessToken())
+        assertThatThrownBy(() -> 
+            freshService.validateToken(jwtToken.getAccessToken())
         ).hasMessageContaining("blacklisted");
     }
 
@@ -144,7 +158,7 @@ class JwtAuthenticationServicePropertyTest {
         LocalDateTime expectedMinExpiration = beforeGeneration.plusSeconds(3590); // 59 minutes 50 seconds
         LocalDateTime expectedMaxExpiration = afterGeneration.plusSeconds(3610); // 60 minutes 10 seconds
         
-        Assertions.assertThat(tokenExpiration).isBetween(expectedMinExpiration, expectedMaxExpiration);
+        assertThat(tokenExpiration).isBetween(expectedMinExpiration, expectedMaxExpiration);
     }
 
     /**

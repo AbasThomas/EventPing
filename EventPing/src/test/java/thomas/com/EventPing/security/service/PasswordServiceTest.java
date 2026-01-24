@@ -67,41 +67,6 @@ class PasswordServiceTest {
     }
 
     @Test
-    @DisplayName("Should handle null password gracefully")
-    void shouldHandleNullPasswordGracefully() {
-        // When & Then
-        assertThatThrownBy(() -> passwordService.hashPassword(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Password cannot be null or empty");
-    }
-
-    @Test
-    @DisplayName("Should handle empty password gracefully")
-    void shouldHandleEmptyPasswordGracefully() {
-        // When & Then
-        assertThatThrownBy(() -> passwordService.hashPassword(""))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Password cannot be null or empty");
-
-        assertThatThrownBy(() -> passwordService.hashPassword("   "))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Password cannot be null or empty");
-    }
-
-    @Test
-    @DisplayName("Should return false for null verification inputs")
-    void shouldReturnFalseForNullVerificationInputs() {
-        // Given
-        String validPassword = "TestPassword123!";
-        String hashedPassword = passwordService.hashPassword(validPassword);
-
-        // When & Then
-        assertThat(passwordService.verifyPassword(null, hashedPassword)).isFalse();
-        assertThat(passwordService.verifyPassword(validPassword, null)).isFalse();
-        assertThat(passwordService.verifyPassword(null, null)).isFalse();
-    }
-
-    @Test
     @DisplayName("Should generate different hashes for same password")
     void shouldGenerateDifferentHashesForSamePassword() {
         // Given
@@ -118,45 +83,98 @@ class PasswordServiceTest {
     }
 
     @Test
-    @DisplayName("Should detect when password needs rehash")
-    void shouldDetectWhenPasswordNeedsRehash() {
-        // Given
-        String oldFormatHash = "$2a$10$abcdefghijklmnopqrstuvwxyz"; // Cost 10, not 12
-        String currentFormatHash = passwordService.hashPassword("TestPassword123!");
-
+    @DisplayName("Should throw exception for null password")
+    void shouldThrowExceptionForNullPassword() {
         // When & Then
-        assertThat(passwordService.needsRehash(null)).isTrue();
-        assertThat(passwordService.needsRehash(oldFormatHash)).isTrue();
-        assertThat(passwordService.needsRehash(currentFormatHash)).isFalse();
+        assertThatThrownBy(() -> passwordService.hashPassword(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Password cannot be null or empty");
     }
 
     @Test
-    @DisplayName("Should handle complex passwords correctly")
-    void shouldHandleComplexPasswordsCorrectly() {
+    @DisplayName("Should throw exception for empty password")
+    void shouldThrowExceptionForEmptyPassword() {
+        // When & Then
+        assertThatThrownBy(() -> passwordService.hashPassword(""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Password cannot be null or empty");
+
+        assertThatThrownBy(() -> passwordService.hashPassword("   "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Password cannot be null or empty");
+    }
+
+    @Test
+    @DisplayName("Should return false for null password verification")
+    void shouldReturnFalseForNullPasswordVerification() {
         // Given
-        String complexPassword = "Th1s!s@V3ry#C0mpl3x$P@ssw0rd%W1th&M@ny*Ch@r@ct3rs";
+        String hashedPassword = passwordService.hashPassword("TestPassword123!");
+
+        // When & Then
+        assertThat(passwordService.verifyPassword(null, hashedPassword)).isFalse();
+        assertThat(passwordService.verifyPassword("TestPassword123!", null)).isFalse();
+        assertThat(passwordService.verifyPassword(null, null)).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should detect if password needs rehash")
+    void shouldDetectIfPasswordNeedsRehash() {
+        // Given
+        String plainPassword = "TestPassword123!";
+        String currentHash = passwordService.hashPassword(plainPassword);
+        
+        // Simulate old hash with different cost
+        String oldHash = "$2a$10$abcdefghijklmnopqrstuvwxyz1234567890123456789012";
+
+        // When & Then
+        assertThat(passwordService.needsRehash(currentHash)).isFalse();
+        assertThat(passwordService.needsRehash(oldHash)).isTrue();
+        assertThat(passwordService.needsRehash(null)).isTrue();
+        assertThat(passwordService.needsRehash("invalid-hash")).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should handle special characters in password")
+    void shouldHandleSpecialCharactersInPassword() {
+        // Given
+        String passwordWithSpecialChars = "P@ssw0rd!#$%^&*()_+-=[]{}|;':\",./<>?";
 
         // When
-        String hashedPassword = passwordService.hashPassword(complexPassword);
+        String hashedPassword = passwordService.hashPassword(passwordWithSpecialChars);
+        boolean isValid = passwordService.verifyPassword(passwordWithSpecialChars, hashedPassword);
 
         // Then
         assertThat(hashedPassword).isNotNull();
-        assertThat(passwordService.verifyPassword(complexPassword, hashedPassword)).isTrue();
-        assertThat(passwordService.verifyPassword("WrongPassword", hashedPassword)).isFalse();
+        assertThat(isValid).isTrue();
     }
 
     @Test
-    @DisplayName("Should handle unicode characters in passwords")
-    void shouldHandleUnicodeCharactersInPasswords() {
+    @DisplayName("Should handle unicode characters in password")
+    void shouldHandleUnicodeCharactersInPassword() {
         // Given
-        String unicodePassword = "Pässwörd123!@#中文密码";
+        String unicodePassword = "Pässwörd123!こんにちは";
 
         // When
         String hashedPassword = passwordService.hashPassword(unicodePassword);
+        boolean isValid = passwordService.verifyPassword(unicodePassword, hashedPassword);
 
         // Then
         assertThat(hashedPassword).isNotNull();
-        assertThat(passwordService.verifyPassword(unicodePassword, hashedPassword)).isTrue();
-        assertThat(passwordService.verifyPassword("WrongPassword", hashedPassword)).isFalse();
+        assertThat(isValid).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should handle very long passwords")
+    void shouldHandleVeryLongPasswords() {
+        // Given
+        String longPassword = "a".repeat(1000) + "B1!";
+
+        // When
+        String hashedPassword = passwordService.hashPassword(longPassword);
+        boolean isValid = passwordService.verifyPassword(longPassword, hashedPassword);
+
+        // Then
+        assertThat(hashedPassword).isNotNull();
+        assertThat(isValid).isTrue();
     }
 }

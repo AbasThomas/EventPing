@@ -29,7 +29,7 @@ This implementation plan transforms the EventPing backend from a development pro
     - Add user roles and account status fields
     - _Requirements: 1.1, 1.3_
 
-  - [-] 2.4 Write unit tests for authentication components
+  - [ ] 2.4 Write unit tests for authentication components
     - Test JWT token generation and validation
     - Test password hashing and verification
     - Test authentication failure scenarios

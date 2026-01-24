@@ -80,17 +80,14 @@ public class SecurityConfig {
             
             // Security Headers
             .headers(headers -> headers
-                .frameOptions().deny()
-                .contentTypeOptions().and()
+                .frameOptions(frameOptions -> frameOptions.deny())
+                .contentTypeOptions(contentTypeOptions -> {})
                 .httpStrictTransportSecurity(hsts -> hsts
                     .maxAgeInSeconds(securityProperties.getHeaders().getHsts().getMaxAge())
-                    .includeSubdomains(securityProperties.getHeaders().getHsts().isIncludeSubdomains())
+                    .includeSubDomains(securityProperties.getHeaders().getHsts().isIncludeSubdomains())
                 )
-                .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
-                .and()
-                .httpStrictTransportSecurity(hsts -> hsts
-                    .maxAgeInSeconds(31536000) // 1 year
-                    .includeSubdomains(true)
+                .referrerPolicy(referrer -> referrer
+                    .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
                 )
             )
             

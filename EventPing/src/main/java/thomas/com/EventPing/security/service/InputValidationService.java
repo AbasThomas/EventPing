@@ -17,8 +17,7 @@ public class InputValidationService {
     // SQL injection patterns - common SQL keywords and injection techniques
     private static final Pattern[] SQL_INJECTION_PATTERNS = {
         Pattern.compile("(?i).*\\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|SCRIPT)\\b.*"),
-        Pattern.compile("(?i).*\\b(OR|AND)\\s+\\d+\\s*=\\s*\\d+.*"),
-        Pattern.compile("(?i).*\\b(OR|AND)\\s+['\"]\\w+['\"]\\s*=\\s*['\"]\\w+['\"].*"),
+        Pattern.compile("(?i).*(OR|AND)\\s+['\"]?\\w+['\"]?\\s*=\\s*['\"]?\\w+['\"]?.*"),
         Pattern.compile("(?i).*['\"];.*"),
         Pattern.compile("(?i).*--.*"),
         Pattern.compile("(?i).*/\\*.*\\*/.*"),
@@ -70,7 +69,8 @@ public class InputValidationService {
             return false;
         }
 
-        String normalizedInput = input.trim();
+        // Normalize whitespace and case for better pattern matching
+        String normalizedInput = input.trim().replaceAll("\\s+", " ");
         
         for (Pattern pattern : SQL_INJECTION_PATTERNS) {
             if (pattern.matcher(normalizedInput).matches()) {
@@ -92,7 +92,8 @@ public class InputValidationService {
             return false;
         }
 
-        String normalizedInput = input.trim();
+        // Normalize whitespace for better pattern matching
+        String normalizedInput = input.trim().replaceAll("\\s+", " ");
         
         for (Pattern pattern : XSS_PATTERNS) {
             if (pattern.matcher(normalizedInput).matches()) {
@@ -244,7 +245,15 @@ public class InputValidationService {
             return false;
         }
         
-        // E.164 format validation
-        return phoneNumber.matches("^\\+?[1-9]\\d{1,14}$");
+        String normalized = phoneNumber.trim();
+        
+        // E.164 format validation - must not start with 0 after country code
+        if (normalized.startsWith("+")) {
+            // International format: +[1-9][0-9]{1,14}
+            return normalized.matches("^\\+[1-9]\\d{1,14}$");
+        } else {
+            // National format: [1-9][0-9]{9,14}
+            return normalized.matches("^[1-9]\\d{9,14}$");
+        }
     }
 }

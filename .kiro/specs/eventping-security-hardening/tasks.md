@@ -69,13 +69,13 @@ This implementation plan transforms the EventPing backend from a development pro
     - **Property 3: Input Validation Completeness**
     - **Validates: Requirements 2.1, 2.2, 2.3, 2.4**
 
-  - [-] 4.3 Enhance entity models with security validations
+  - [x] 4.3 Enhance entity models with security validations
     - Add validation annotations to User, Event, and Participant entities
     - Implement secure slug generation for events
     - Add input sanitization for text fields
     - _Requirements: 2.1, 2.5, 2.6_
 
-  - [ ] 4.4 Write unit tests for validation components
+  - [x] 4.4 Write unit tests for validation components
     - Test SQL injection detection accuracy
     - Test XSS pattern recognition
     - Test email validation with domain checking

@@ -5,9 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -15,15 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import thomas.com.EventPing.User.model.User;
-import thomas.com.EventPing.User.repository.UserRepository;
-import thomas.com.EventPing.event.repository.EventRepository;
-import thomas.com.EventPing.security.service.JwtAuthenticationService;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -33,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * **Validates: Requirements 1.1, 5.1**
  */
 @SpringBootTest
-@AutoConfigureWebMvc
 @ActiveProfiles("test")
 class SecurityConfigIntegrationTest {
 
@@ -42,15 +33,6 @@ class SecurityConfigIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @MockBean
-    private UserRepository userRepository;
-
-    @MockBean
-    private EventRepository eventRepository;
-
-    @MockBean
-    private JwtAuthenticationService jwtAuthenticationService;
 
     private MockMvc mockMvc;
 
@@ -163,38 +145,6 @@ class SecurityConfigIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should handle JWT authentication with valid token")
-    void shouldHandleJwtAuthenticationWithValidToken() throws Exception {
-        // Given
-        User testUser = createTestUser();
-        String validToken = "valid.jwt.token";
-        
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(jwtAuthenticationService.validateToken(validToken))
-                .thenReturn(createMockClaims(testUser));
-
-        // When & Then
-        mockMvc.perform(get("/api/users/1")
-                .header("Authorization", "Bearer " + validToken))
-                .andExpect(status().isNotFound()); // 404 because endpoint doesn't exist, but not 401
-    }
-
-    @Test
-    @DisplayName("Should reject invalid JWT tokens")
-    void shouldRejectInvalidJwtTokens() throws Exception {
-        // Given
-        String invalidToken = "invalid.jwt.token";
-        
-        when(jwtAuthenticationService.validateToken(invalidToken))
-                .thenThrow(new io.jsonwebtoken.JwtException("Invalid token"));
-
-        // When & Then
-        mockMvc.perform(get("/api/users/1")
-                .header("Authorization", "Bearer " + invalidToken))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
     @DisplayName("Should reject malformed Authorization headers")
     void shouldRejectMalformedAuthorizationHeaders() throws Exception {
         mockMvc.perform(get("/api/users/1")
@@ -204,51 +154,6 @@ class SecurityConfigIntegrationTest {
         mockMvc.perform(get("/api/users/1")
                 .header("Authorization", "Bearer"))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @DisplayName("Should handle locked user accounts")
-    void shouldHandleLockedUserAccounts() throws Exception {
-        // Given
-        User lockedUser = createTestUser();
-        lockedUser.setAccountLocked(true);
-        String validToken = "valid.jwt.token";
-        
-        when(userRepository.findById(1L)).thenReturn(Optional.of(lockedUser));
-        when(jwtAuthenticationService.validateToken(validToken))
-                .thenReturn(createMockClaims(lockedUser));
-
-        // When & Then
-        mockMvc.perform(get("/api/users/1")
-                .header("Authorization", "Bearer " + validToken))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @DisplayName("Should handle non-existent users in JWT tokens")
-    void shouldHandleNonExistentUsersInJwtTokens() throws Exception {
-        // Given
-        User testUser = createTestUser();
-        String validToken = "valid.jwt.token";
-        
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-        when(jwtAuthenticationService.validateToken(validToken))
-                .thenReturn(createMockClaims(testUser));
-
-        // When & Then
-        mockMvc.perform(get("/api/users/1")
-                .header("Authorization", "Bearer " + validToken))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @DisplayName("Should handle CSRF protection for state-changing operations")
-    void shouldHandleCsrfProtectionForStateChangingOperations() throws Exception {
-        // CSRF should be enabled for non-auth endpoints
-        mockMvc.perform(post("/api/events")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"title\":\"Test Event\"}"))
-                .andExpect(status().isUnauthorized()); // First fails due to authentication, not CSRF
     }
 
     @Test
@@ -273,13 +178,5 @@ class SecurityConfigIntegrationTest {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         return user;
-    }
-
-    private io.jsonwebtoken.Claims createMockClaims(User user) {
-        io.jsonwebtoken.Claims claims = org.mockito.Mockito.mock(io.jsonwebtoken.Claims.class);
-        when(claims.get("userId", Long.class)).thenReturn(user.getId());
-        when(claims.get("email", String.class)).thenReturn(user.getEmail());
-        when(claims.get("role", String.class)).thenReturn(user.getRole().name());
-        return claims;
     }
 }

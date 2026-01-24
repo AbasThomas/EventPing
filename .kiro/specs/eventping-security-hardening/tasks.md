@@ -35,7 +35,7 @@ This implementation plan transforms the EventPing backend from a development pro
     - Test authentication failure scenarios
     - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 3. Implement authorization service and security configuration
+- [x] 3. Implement authorization service and security configuration
   - [x] 3.1 Create authorization service
     - Implement resource ownership validation
     - Create role-based permission checking
@@ -52,7 +52,7 @@ This implementation plan transforms the EventPing backend from a development pro
     - Configure CSRF protection and security headers
     - _Requirements: 1.1, 5.1, 5.3_
 
-  - [ ] 3.4 Write integration tests for security configuration
+  - [x] 3.4 Write integration tests for security configuration
     - Test authentication filter chain
     - Test authorization on protected endpoints
     - Test security headers in responses

@@ -1,9 +1,7 @@
 package thomas.com.EventPing.security.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,19 +13,14 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Custom access denied handler for handling authorization failures
  * **Validates: Requirements 8.1, 8.2, 8.3**
  */
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
-
-    private final ObjectMapper objectMapper;
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
@@ -42,13 +35,13 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now().toString());
-        errorResponse.put("status", HttpStatus.FORBIDDEN.value());
-        errorResponse.put("error", "Forbidden");
-        errorResponse.put("message", "Insufficient permissions");
-        errorResponse.put("path", request.getRequestURI());
+        String jsonResponse = String.format(
+            "{\"timestamp\":\"%s\",\"status\":%d,\"error\":\"Forbidden\",\"message\":\"Insufficient permissions\",\"path\":\"%s\"}",
+            LocalDateTime.now().toString(),
+            HttpStatus.FORBIDDEN.value(),
+            request.getRequestURI()
+        );
 
-        objectMapper.writeValue(response.getOutputStream(), errorResponse);
+        response.getWriter().write(jsonResponse);
     }
 }

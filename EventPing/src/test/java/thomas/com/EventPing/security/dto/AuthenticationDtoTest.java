@@ -303,7 +303,7 @@ class AuthenticationDtoTest {
     @Test
     @DisplayName("Should validate various phone number formats")
     void shouldValidateVariousPhoneNumberFormats() {
-        // Test each valid phone number individually
+        // Valid phone numbers (according to regex ^\\+?[1-9]\\d{1,14}$)
         String[] validPhones = {
                 "+1234567890",        // +1 followed by 9 digits = valid (10 total)
                 "1234567890",         // 10 digits starting with 1 = valid  
@@ -322,24 +322,54 @@ class AuthenticationDtoTest {
                     .build();
 
             Set<ConstraintViolation<UserRegistrationRequest>> violations = validator.validate(request);
-            System.out.println("Testing valid phone '" + phone + "': " + violations.size() + " violations");
-            if (!violations.isEmpty()) {
-                System.out.println("  ERROR: Expected no violations but got: " + violations.iterator().next().getMessage());
-            }
             assertThat(violations).as("Phone number '" + phone + "' should be valid").isEmpty();
         }
 
-        // Test a simple invalid case
-        UserRegistrationRequest request = UserRegistrationRequest.builder()
+        // Invalid phone numbers (non-empty values that don't match the pattern)
+        String[] invalidPhones = {
+                "+0123456789",         // starts with 0 after +
+                "abc123456789",        // contains letters
+                "+",                   // too short
+                "+1234567890123456",   // too long (16 digits total)
+                "1234567890123456",    // too long (16 digits)
+                "0123456789"           // starts with 0
+        };
+
+        for (String phone : invalidPhones) {
+            UserRegistrationRequest request = UserRegistrationRequest.builder()
+                    .email("test@example.com")
+                    .password("TestPassword123!")
+                    .confirmPassword("TestPassword123!")
+                    .fullName("John Doe")
+                    .phoneNumber(phone)
+                    .build();
+
+            Set<ConstraintViolation<UserRegistrationRequest>> violations = validator.validate(request);
+            assertThat(violations).as("Phone number '" + phone + "' should be invalid").hasSize(1);
+            assertThat(violations.iterator().next().getMessage()).contains("Invalid phone number format");
+        }
+        
+        // Test that empty/null phone number is allowed (since no @NotBlank annotation)
+        UserRegistrationRequest requestWithEmptyPhone = UserRegistrationRequest.builder()
                 .email("test@example.com")
                 .password("TestPassword123!")
                 .confirmPassword("TestPassword123!")
                 .fullName("John Doe")
-                .phoneNumber("abc123456789") // clearly invalid
+                .phoneNumber("")
                 .build();
 
-        Set<ConstraintViolation<UserRegistrationRequest>> violations = validator.validate(request);
-        assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).contains("Invalid phone number format");
+        Set<ConstraintViolation<UserRegistrationRequest>> violations = validator.validate(requestWithEmptyPhone);
+        assertThat(violations).isEmpty(); // Empty phone should be allowed
+        
+        UserRegistrationRequest requestWithNullPhone = UserRegistrationRequest.builder()
+                .email("test@example.com")
+                .password("TestPassword123!")
+                .confirmPassword("TestPassword123!")
+                .fullName("John Doe")
+                .phoneNumber(null)
+                .build();
+
+        violations = validator.validate(requestWithNullPhone);
+        assertThat(violations).isEmpty(); // Null phone should be allowed
     }
 }

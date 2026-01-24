@@ -2,12 +2,15 @@ package thomas.com.EventPing.User.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import thomas.com.EventPing.security.validation.NoSqlInjection;
+import thomas.com.EventPing.security.validation.NoXss;
 
 import java.time.LocalDateTime;
 
@@ -24,6 +27,9 @@ public class User {
 
     @Column(nullable = false, unique = true)
     @Email(message = "Invalid email format")
+    @NotBlank(message = "Email is required")
+    @NoXss
+    @NoSqlInjection
     private String email;
 
     @Column(name = "password_hash", nullable = false)
@@ -31,10 +37,14 @@ public class User {
 
     @Column(name = "full_name")
     @Size(max = 100, message = "Full name must not exceed 100 characters")
+    @NoXss
+    @NoSqlInjection
     private String fullName;
 
     @Column(name = "phone_number")
     @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Invalid phone number format")
+    @NoXss
+    @NoSqlInjection
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)

@@ -1,11 +1,15 @@
 package thomas.com.EventPing.participant.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import thomas.com.EventPing.event.model.Event;
+import thomas.com.EventPing.security.validation.NoSqlInjection;
+import thomas.com.EventPing.security.validation.NoXss;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,6 +31,10 @@ public class Participant {
     private Event event;
 
     @Column(nullable = false)
+    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email is required")
+    @NoXss
+    @NoSqlInjection
     private String email;
 
     @Column(name = "joined_at", nullable = false)

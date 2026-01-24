@@ -65,11 +65,11 @@ This implementation plan transforms the EventPing backend from a development pro
     - Add custom validation annotations (@NoSqlInjection, @NoXss)
     - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-  - [ ] 4.2 Write property test for input validation
+  - [x] 4.2 Write property test for input validation
     - **Property 3: Input Validation Completeness**
     - **Validates: Requirements 2.1, 2.2, 2.3, 2.4**
 
-  - [ ] 4.3 Enhance entity models with security validations
+  - [-] 4.3 Enhance entity models with security validations
     - Add validation annotations to User, Event, and Participant entities
     - Implement secure slug generation for events
     - Add input sanitization for text fields

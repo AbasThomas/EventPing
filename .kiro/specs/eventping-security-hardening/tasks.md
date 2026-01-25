@@ -111,13 +111,13 @@ This implementation plan transforms the EventPing backend from a development pro
   - Ask the user if questions arise
 
 - [ ] 7. Implement data protection and encryption
-  - [ ] 7.1 Configure database security enhancements
+  - [x] 7.1 Configure database security enhancements
     - Set up encrypted database connections
     - Configure connection pooling with security settings
     - Add database credential management
     - _Requirements: 7.1, 7.3, 4.5_
 
-  - [ ] 7.2 Write property test for data encryption
+  - [-] 7.2 Write property test for data encryption
     - **Property 5: Data Encryption Consistency**
     - **Validates: Requirements 4.1, 4.3**
 

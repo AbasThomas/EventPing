@@ -157,13 +157,13 @@ This implementation plan transforms the EventPing backend from a development pro
     - _Requirements: 6.1, 6.2, 6.3_
 
 - [ ] 9. Enhance controllers with security features
-  - [ ] 9.1 Secure User controller with authentication and authorization
+  - [x] 9.1 Secure User controller with authentication and authorization
     - Add authentication requirements to user endpoints
     - Implement resource ownership validation
     - Add rate limiting to registration endpoint
     - _Requirements: 1.1, 1.5, 3.1_
 
-  - [ ] 9.2 Secure Event controller with proper access controls
+  - [-] 9.2 Secure Event controller with proper access controls
     - Add authentication to event creation and modification
     - Implement event ownership validation
     - Add rate limiting to event creation

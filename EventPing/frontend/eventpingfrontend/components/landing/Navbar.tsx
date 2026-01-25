@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
 
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,12 +70,31 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="text-sm font-light text-slate-300 hover:text-white transition-colors">
-            Sign in
-          </button>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-full font-medium transition-all shadow-[0_0_15px_-3px_rgba(99,102,241,0.6)] cursor-pointer">
-            Sign up
-          </button>
+          {user ? (
+            <>
+              <Link href="/dashboard" className="text-sm font-light text-slate-300 hover:text-white transition-colors">
+                Dashboard
+              </Link>
+              <Link href="/profile" className="text-sm font-light text-slate-300 hover:text-white transition-colors">
+                Profile
+              </Link>
+              <button 
+                onClick={logout}
+                className="bg-red-600 hover:bg-red-500 text-white text-xs px-4 py-2 rounded-full font-medium transition-all shadow-[0_0_15px_-3px_rgba(239,68,68,0.6)] cursor-pointer"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/auth/login" className="text-sm font-light text-slate-300 hover:text-white transition-colors">
+                Sign in
+              </Link>
+              <Link href="/auth/register" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-full font-medium transition-all shadow-[0_0_15px_-3px_rgba(99,102,241,0.6)] cursor-pointer">
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

@@ -2,8 +2,8 @@ import { Navbar } from '@/components/landing/Navbar';
 import { Hero } from '@/components/landing/Hero';
 import { KeyMetrics } from '@/components/landing/KeyMetrics';
 import { HowItWorks } from '@/components/landing/HowItWorks';
-import { FeaturedModels } from '@/components/landing/FeaturedModels';
-import { FeaturedAgents } from '@/components/landing/FeaturedAgents';
+import { FeaturedFeatures } from '@/components/landing/FeaturedFeatures';
+import { Testimonials } from '@/components/landing/Testimonials';
 import { Newsletter } from '@/components/landing/Newsletter';
 import { Footer } from '@/components/landing/Footer';
 import { UnicornScript } from '@/components/landing/UnicornScript';
@@ -31,8 +31,8 @@ export default function Home() {
         <Hero />
         <KeyMetrics />
         <HowItWorks />
-        <FeaturedModels />
-        <FeaturedAgents />
+        <FeaturedFeatures />
+        <Testimonials />
         <Newsletter />
       </div>
       

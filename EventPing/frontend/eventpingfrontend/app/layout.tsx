@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: "Create, manage, and track events with intelligent reminders and seamless participant coordination.",
 };
 
+import { ScrollReveal } from "@/components/landing/ScrollReveal";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} antialiased font-sans`}>
+        <ScrollReveal />
         {children}
       </body>
     </html>

@@ -25,6 +25,7 @@ public class RateLimitingService {
     
     private final RateLimitTrackingRepository rateLimitRepository;
     private final RateLimitProperties rateLimitProperties;
+    private final AuditLoggingService auditLoggingService;
     
     /**
      * Check if request is within rate limits
@@ -66,6 +67,13 @@ public class RateLimitingService {
         if (tracking.isLimitExceeded()) {
             tracking.setViolationCount(tracking.getViolationCount() + 1);
             
+            // Log rate limit exceeded
+            auditLoggingService.logRateLimitExceeded(
+                    extractUsernameFromIdentifier(identifier),
+                    extractIpFromIdentifier(identifier),
+                    type.toString()
+            );
+            
             // Apply progressive blocking for repeated violations
             if (tracking.getViolationCount() >= getBlockThreshold(type)) {
                 Duration blockDuration = calculateBlockDuration(tracking.getViolationCount());
@@ -74,6 +82,16 @@ public class RateLimitingService {
                 
                 log.warn("Blocking identifier {} for {} due to {} violations", 
                     identifier, blockDuration, tracking.getViolationCount());
+                
+                // Log security violation for blocking
+                auditLoggingService.logSecurityViolation(
+                        extractUsernameFromIdentifier(identifier),
+                        extractIpFromIdentifier(identifier),
+                        "RATE_LIMIT_BLOCK",
+                        String.format("Identifier blocked for %s due to %d violations", 
+                                blockDuration, tracking.getViolationCount()),
+                        thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.HIGH
+                );
             }
             
             rateLimitRepository.save(tracking);
@@ -166,6 +184,15 @@ public class RateLimitingService {
         tracking.setMetadata("Manually blocked due to suspicious activity");
         
         rateLimitRepository.save(tracking);
+        
+        // Log security violation for manual IP blocking
+        auditLoggingService.logSecurityViolation(
+                null,
+                ipAddress,
+                "MANUAL_IP_BLOCK",
+                String.format("IP manually blocked for %s due to suspicious activity", duration),
+                thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.HIGH
+        );
     }
     
     /**
@@ -304,6 +331,28 @@ public class RateLimitingService {
             default:
                 return Duration.ofHours(24);
         }
+    }
+    
+    /**
+     * Extract username from identifier for audit logging
+     */
+    private String extractUsernameFromIdentifier(String identifier) {
+        if (identifier.startsWith("user:")) {
+            // For user identifiers, we have the user ID, not username
+            // In a real implementation, you might want to look up the username
+            return "user_id_" + identifier.substring(5);
+        }
+        return null;
+    }
+    
+    /**
+     * Extract IP address from identifier for audit logging
+     */
+    private String extractIpFromIdentifier(String identifier) {
+        if (identifier.startsWith("ip:")) {
+            return identifier.substring(3);
+        }
+        return null;
     }
     
     /**

@@ -22,12 +22,24 @@ import java.util.stream.Collectors;
 public class UserServiceImplementation implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final thomas.com.EventPing.security.service.AuditLoggingService auditLoggingService;
 
     @Override
     public UserResponseDto createUser(thomas.com.EventPing.User.dtos.UserRequest request) {
         log.info("Creating user with email: {}", request.getEmail());
         User user = userMapper.toUser(request);
         User savedUser = userRepository.save(user);
+        
+        // Log user creation
+        auditLoggingService.logDataModification(
+                savedUser.getEmail(),
+                thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.DATA_CREATE,
+                "User",
+                savedUser.getId().toString(),
+                null,
+                savedUser
+        );
+        
         return userMapper.toUserResponseDto(savedUser);
     }
 
@@ -56,6 +68,13 @@ public class UserServiceImplementation implements UserService {
         log.info("Updating user with id: {}", id);
         User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
         
+        // Store old values for audit logging
+        User oldUser = new User();
+        oldUser.setId(user.getId());
+        oldUser.setEmail(user.getEmail());
+        oldUser.setFullName(user.getFullName());
+        oldUser.setPhoneNumber(user.getPhoneNumber());
+        
         // Manual update of fields since we don't have a partial update DTO/mapper method ideally
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
@@ -63,6 +82,17 @@ public class UserServiceImplementation implements UserService {
         user.setUpdatedAt(LocalDateTime.now());
         
         User savedUser = userRepository.save(user);
+        
+        // Log user modification
+        auditLoggingService.logDataModification(
+                savedUser.getEmail(),
+                thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.DATA_UPDATE,
+                "User",
+                savedUser.getId().toString(),
+                oldUser,
+                savedUser
+        );
+        
         return userMapper.toUserResponseDto(savedUser);
     }
 
@@ -72,6 +102,20 @@ public class UserServiceImplementation implements UserService {
         if(!userRepository.existsById(id)) {
              throw new RuntimeException("User not found");
         }
+        
+        // Get user details before deletion for audit logging
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        
         userRepository.deleteById(id);
+        
+        // Log user deletion
+        auditLoggingService.logDataModification(
+                user.getEmail(),
+                thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.DATA_DELETE,
+                "User",
+                user.getId().toString(),
+                user,
+                null
+        );
     }
 }

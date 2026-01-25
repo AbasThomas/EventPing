@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JwtAuthenticationService {
 
     private final SecurityProperties securityProperties;
+    private final AuditLoggingService auditLoggingService;
     
     // In-memory blacklist for demonstration - in production, use Redis
     private final Set<String> blacklistedTokens = ConcurrentHashMap.newKeySet();
@@ -33,6 +34,13 @@ public class JwtAuthenticationService {
      * Generate JWT token with proper claims and expiration
      */
     public JwtToken generateToken(User user) {
+        return generateToken(user, null);
+    }
+
+    /**
+     * Generate JWT token with proper claims and expiration
+     */
+    public JwtToken generateToken(User user, String ipAddress) {
         try {
             Date now = new Date();
             Date expirationDate = new Date(now.getTime() + securityProperties.getJwt().getExpiration());
@@ -77,6 +85,9 @@ public class JwtAuthenticationService {
 
             log.debug("Generated JWT token for user: {}", user.getEmail());
 
+            // Log successful authentication
+            auditLoggingService.logAuthenticationSuccess(user.getEmail(), ipAddress);
+
             return JwtToken.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
@@ -86,6 +97,11 @@ public class JwtAuthenticationService {
 
         } catch (Exception e) {
             log.error("Error generating JWT token for user: {}", user.getEmail(), e);
+            
+            // Log authentication failure
+            auditLoggingService.logAuthenticationFailure(user.getEmail(), ipAddress, 
+                    "Token generation failed: " + e.getMessage());
+            
             throw new RuntimeException("Failed to generate JWT token", e);
         }
     }
@@ -94,10 +110,24 @@ public class JwtAuthenticationService {
      * Validate and parse JWT token
      */
     public Claims validateToken(String token) {
+        return validateToken(token, null);
+    }
+
+    /**
+     * Validate and parse JWT token with IP address for audit logging
+     */
+    public Claims validateToken(String token, String ipAddress) {
         try {
             // Check if token is blacklisted
             if (blacklistedTokens.contains(token)) {
                 log.warn("Attempted to use blacklisted token");
+                
+                // Log security violation for blacklisted token usage
+                auditLoggingService.logSecurityViolation(null, ipAddress, 
+                        "BLACKLISTED_TOKEN_USAGE", 
+                        "Attempted to use blacklisted JWT token",
+                        thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.HIGH);
+                
                 throw new JwtException("Token has been blacklisted");
             }
 
@@ -110,6 +140,10 @@ public class JwtAuthenticationService {
 
             // Manual validation of issuer and audience
             if (!securityProperties.getJwt().getIssuer().equals(claims.getIssuer())) {
+                auditLoggingService.logSecurityViolation(claims.getSubject(), ipAddress,
+                        "INVALID_TOKEN_ISSUER",
+                        "JWT token with invalid issuer: " + claims.getIssuer(),
+                        thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.MEDIUM);
                 throw new JwtException("Invalid issuer: " + claims.getIssuer());
             }
             
@@ -118,12 +152,20 @@ public class JwtAuthenticationService {
             String expectedAudience = securityProperties.getJwt().getAudience();
             
             if (audienceSet == null || !audienceSet.contains(expectedAudience)) {
+                auditLoggingService.logSecurityViolation(claims.getSubject(), ipAddress,
+                        "INVALID_TOKEN_AUDIENCE",
+                        "JWT token with invalid audience: " + audienceSet,
+                        thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.MEDIUM);
                 throw new JwtException("Invalid audience: " + audienceSet);
             }
 
             // Validate token type
             String tokenType = claims.get("type", String.class);
             if (!"access".equals(tokenType)) {
+                auditLoggingService.logSecurityViolation(claims.getSubject(), ipAddress,
+                        "INVALID_TOKEN_TYPE",
+                        "JWT token with invalid type: " + tokenType,
+                        thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.MEDIUM);
                 throw new JwtException("Invalid token type: " + tokenType);
             }
 
@@ -132,18 +174,36 @@ public class JwtAuthenticationService {
 
         } catch (ExpiredJwtException e) {
             log.warn("JWT token has expired: {}", e.getMessage());
+            auditLoggingService.logAuthenticationFailure(e.getClaims().getSubject(), ipAddress,
+                    "Token expired");
             throw new JwtException("Token has expired", e);
         } catch (UnsupportedJwtException e) {
             log.warn("Unsupported JWT token: {}", e.getMessage());
+            auditLoggingService.logSecurityViolation(null, ipAddress,
+                    "UNSUPPORTED_TOKEN_FORMAT",
+                    "Unsupported JWT token format",
+                    thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.MEDIUM);
             throw new JwtException("Unsupported token format", e);
         } catch (MalformedJwtException e) {
             log.warn("Malformed JWT token: {}", e.getMessage());
+            auditLoggingService.logSecurityViolation(null, ipAddress,
+                    "MALFORMED_TOKEN",
+                    "Malformed JWT token",
+                    thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.MEDIUM);
             throw new JwtException("Malformed token", e);
         } catch (SecurityException e) {
             log.warn("Invalid JWT signature: {}", e.getMessage());
+            auditLoggingService.logSecurityViolation(null, ipAddress,
+                    "INVALID_TOKEN_SIGNATURE",
+                    "Invalid JWT token signature",
+                    thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.HIGH);
             throw new JwtException("Invalid token signature", e);
         } catch (IllegalArgumentException e) {
             log.warn("JWT token compact of handler are invalid: {}", e.getMessage());
+            auditLoggingService.logSecurityViolation(null, ipAddress,
+                    "INVALID_TOKEN_FORMAT",
+                    "Invalid JWT token format",
+                    thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.MEDIUM);
             throw new JwtException("Invalid token", e);
         }
     }
@@ -215,12 +275,27 @@ public class JwtAuthenticationService {
      * Blacklist token on logout
      */
     public void blacklistToken(String token) {
+        blacklistToken(token, null);
+    }
+
+    /**
+     * Blacklist token on logout with IP address for audit logging
+     */
+    public void blacklistToken(String token, String ipAddress) {
         try {
             // Add token to blacklist
             blacklistedTokens.add(token);
             
             // Also try to extract and blacklist refresh token if this is an access token
             Claims claims = validateTokenWithoutBlacklistCheck(token);
+            
+            // Log session termination
+            auditLoggingService.logSessionEvent(
+                    thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.SESSION_LOGOUT,
+                    claims.getSubject(), 
+                    null, // session ID not available here
+                    ipAddress);
+            
             log.info("Successfully blacklisted token for user: {}", claims.getSubject());
             
         } catch (Exception e) {

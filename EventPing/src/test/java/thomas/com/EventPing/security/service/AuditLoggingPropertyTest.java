@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jqwik.api.*;
 import net.jqwik.api.constraints.AlphaChars;
 import net.jqwik.api.constraints.StringLength;
+import net.jqwik.api.lifecycle.BeforeProperty;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import thomas.com.EventPing.security.entity.AuditEvent;

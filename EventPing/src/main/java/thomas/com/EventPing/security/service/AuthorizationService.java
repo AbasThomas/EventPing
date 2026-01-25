@@ -22,6 +22,7 @@ public class AuthorizationService {
     
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final AuditLoggingService auditLoggingService;
 
     /**
      * Check if user can access a specific resource
@@ -31,8 +32,26 @@ public class AuthorizationService {
      * @return true if access is allowed, false otherwise
      */
     public boolean canAccessResource(User user, String resourceType, Long resourceId) {
+        return canAccessResource(user, resourceType, resourceId, null);
+    }
+
+    /**
+     * Check if user can access a specific resource with IP address for audit logging
+     * @param user The user requesting access
+     * @param resourceType The type of resource (e.g., "event", "user")
+     * @param resourceId The ID of the resource
+     * @param ipAddress The IP address of the request
+     * @return true if access is allowed, false otherwise
+     */
+    public boolean canAccessResource(User user, String resourceType, Long resourceId, String ipAddress) {
         if (user == null || resourceId == null) {
             log.warn("Authorization check failed: null user or resource ID");
+            auditLoggingService.logAuthorizationFailure(
+                    user != null ? user.getEmail() : "unknown",
+                    ipAddress,
+                    resourceType + "/" + resourceId,
+                    "ACCESS"
+            );
             return false;
         }
 
@@ -42,7 +61,7 @@ public class AuthorizationService {
             return true;
         }
 
-        return switch (resourceType.toLowerCase()) {
+        boolean hasAccess = switch (resourceType.toLowerCase()) {
             case "event" -> canAccessEvent(user, resourceId);
             case "user" -> canAccessUser(user, resourceId);
             default -> {
@@ -50,6 +69,18 @@ public class AuthorizationService {
                 yield false;
             }
         };
+
+        // Log authorization failure if access is denied
+        if (!hasAccess) {
+            auditLoggingService.logAuthorizationFailure(
+                    user.getEmail(),
+                    ipAddress,
+                    resourceType + "/" + resourceId,
+                    "ACCESS"
+            );
+        }
+
+        return hasAccess;
     }
 
     /**
@@ -60,18 +91,42 @@ public class AuthorizationService {
      * @return true if permission is granted, false otherwise
      */
     public boolean hasPermission(User user, String permission, Object target) {
+        return hasPermission(user, permission, target, null);
+    }
+
+    /**
+     * Validate user permissions for specific actions with IP address for audit logging
+     * @param user The user requesting permission
+     * @param permission The permission being requested
+     * @param target The target object (optional)
+     * @param ipAddress The IP address of the request
+     * @return true if permission is granted, false otherwise
+     */
+    public boolean hasPermission(User user, String permission, Object target, String ipAddress) {
         if (user == null || permission == null) {
             log.warn("Permission check failed: null user or permission");
+            auditLoggingService.logAuthorizationFailure(
+                    user != null ? user.getEmail() : "unknown",
+                    ipAddress,
+                    target != null ? target.getClass().getSimpleName() : "unknown",
+                    permission
+            );
             return false;
         }
 
         // Check account status
         if (user.getAccountLocked()) {
             log.warn("Permission denied for locked account: {}", user.getEmail());
+            auditLoggingService.logAuthorizationFailure(
+                    user.getEmail(),
+                    ipAddress,
+                    target != null ? target.getClass().getSimpleName() : "unknown",
+                    permission + " (account locked)"
+            );
             return false;
         }
 
-        return switch (permission.toLowerCase()) {
+        boolean hasPermission = switch (permission.toLowerCase()) {
             case "read" -> hasReadPermission(user, target);
             case "write" -> hasWritePermission(user, target);
             case "delete" -> hasDeletePermission(user, target);
@@ -82,6 +137,18 @@ public class AuthorizationService {
                 yield false;
             }
         };
+
+        // Log authorization failure if permission is denied
+        if (!hasPermission) {
+            auditLoggingService.logAuthorizationFailure(
+                    user.getEmail(),
+                    ipAddress,
+                    target != null ? target.getClass().getSimpleName() : "unknown",
+                    permission
+            );
+        }
+
+        return hasPermission;
     }
 
     /**
@@ -125,7 +192,20 @@ public class AuthorizationService {
      * Check if user can modify a specific user resource
      */
     public boolean canModifyUser(User requestingUser, Long targetUserId) {
+        return canModifyUser(requestingUser, targetUserId, null);
+    }
+
+    /**
+     * Check if user can modify a specific user resource with IP address for audit logging
+     */
+    public boolean canModifyUser(User requestingUser, Long targetUserId, String ipAddress) {
         if (requestingUser == null || targetUserId == null) {
+            auditLoggingService.logAuthorizationFailure(
+                    requestingUser != null ? requestingUser.getEmail() : "unknown",
+                    ipAddress,
+                    "user/" + targetUserId,
+                    "MODIFY"
+            );
             return false;
         }
 
@@ -135,21 +215,56 @@ public class AuthorizationService {
         }
 
         // Only admins can modify other users
-        return requestingUser.getRole() == User.UserRole.ADMIN;
+        boolean canModify = requestingUser.getRole() == User.UserRole.ADMIN;
+        
+        if (!canModify) {
+            auditLoggingService.logAuthorizationFailure(
+                    requestingUser.getEmail(),
+                    ipAddress,
+                    "user/" + targetUserId,
+                    "MODIFY"
+            );
+        }
+        
+        return canModify;
     }
 
     /**
      * Check if user can delete a specific user resource
      */
     public boolean canDeleteUser(User requestingUser, Long targetUserId) {
+        return canDeleteUser(requestingUser, targetUserId, null);
+    }
+
+    /**
+     * Check if user can delete a specific user resource with IP address for audit logging
+     */
+    public boolean canDeleteUser(User requestingUser, Long targetUserId, String ipAddress) {
         if (requestingUser == null || targetUserId == null) {
+            auditLoggingService.logAuthorizationFailure(
+                    requestingUser != null ? requestingUser.getEmail() : "unknown",
+                    ipAddress,
+                    "user/" + targetUserId,
+                    "DELETE"
+            );
             return false;
         }
 
         // Users cannot delete their own account (business rule)
         // Only admins can delete user accounts
-        return requestingUser.getRole() == User.UserRole.ADMIN && 
-               !requestingUser.getId().equals(targetUserId);
+        boolean canDelete = requestingUser.getRole() == User.UserRole.ADMIN && 
+                           !requestingUser.getId().equals(targetUserId);
+        
+        if (!canDelete) {
+            auditLoggingService.logAuthorizationFailure(
+                    requestingUser.getEmail(),
+                    ipAddress,
+                    "user/" + targetUserId,
+                    "DELETE"
+            );
+        }
+        
+        return canDelete;
     }
 
     /**
@@ -187,12 +302,31 @@ public class AuthorizationService {
      * Check if user can modify a specific event
      */
     public boolean canModifyEvent(User user, Long eventId) {
+        return canModifyEvent(user, eventId, null);
+    }
+
+    /**
+     * Check if user can modify a specific event with IP address for audit logging
+     */
+    public boolean canModifyEvent(User user, Long eventId, String ipAddress) {
         if (user == null || eventId == null) {
+            auditLoggingService.logAuthorizationFailure(
+                    user != null ? user.getEmail() : "unknown",
+                    ipAddress,
+                    "event/" + eventId,
+                    "MODIFY"
+            );
             return false;
         }
 
         Optional<Event> eventOpt = eventRepository.findById(eventId);
         if (eventOpt.isEmpty()) {
+            auditLoggingService.logAuthorizationFailure(
+                    user.getEmail(),
+                    ipAddress,
+                    "event/" + eventId,
+                    "MODIFY (event not found)"
+            );
             return false;
         }
 
@@ -204,20 +338,50 @@ public class AuthorizationService {
         }
 
         // Admins and moderators can modify any event
-        return user.getRole() == User.UserRole.ADMIN || 
-               user.getRole() == User.UserRole.MODERATOR;
+        boolean canModify = user.getRole() == User.UserRole.ADMIN || 
+                           user.getRole() == User.UserRole.MODERATOR;
+        
+        if (!canModify) {
+            auditLoggingService.logAuthorizationFailure(
+                    user.getEmail(),
+                    ipAddress,
+                    "event/" + eventId,
+                    "MODIFY"
+            );
+        }
+        
+        return canModify;
     }
 
     /**
      * Check if user can delete a specific event
      */
     public boolean canDeleteEvent(User user, Long eventId) {
+        return canDeleteEvent(user, eventId, null);
+    }
+
+    /**
+     * Check if user can delete a specific event with IP address for audit logging
+     */
+    public boolean canDeleteEvent(User user, Long eventId, String ipAddress) {
         if (user == null || eventId == null) {
+            auditLoggingService.logAuthorizationFailure(
+                    user != null ? user.getEmail() : "unknown",
+                    ipAddress,
+                    "event/" + eventId,
+                    "DELETE"
+            );
             return false;
         }
 
         Optional<Event> eventOpt = eventRepository.findById(eventId);
         if (eventOpt.isEmpty()) {
+            auditLoggingService.logAuthorizationFailure(
+                    user.getEmail(),
+                    ipAddress,
+                    "event/" + eventId,
+                    "DELETE (event not found)"
+            );
             return false;
         }
 
@@ -229,7 +393,18 @@ public class AuthorizationService {
         }
 
         // Admins can delete any event
-        return user.getRole() == User.UserRole.ADMIN;
+        boolean canDelete = user.getRole() == User.UserRole.ADMIN;
+        
+        if (!canDelete) {
+            auditLoggingService.logAuthorizationFailure(
+                    user.getEmail(),
+                    ipAddress,
+                    "event/" + eventId,
+                    "DELETE"
+            );
+        }
+        
+        return canDelete;
     }
 
     // Private helper methods

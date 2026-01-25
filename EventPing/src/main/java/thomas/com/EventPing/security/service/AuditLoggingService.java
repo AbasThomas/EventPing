@@ -213,10 +213,14 @@ public class AuditLoggingService {
                     .action(action)
                     .resourceType(resourceType)
                     .resourceId(resourceId)
-                    .details(details)
                     .severity(severity)
                     .result("SUCCESS")
                     .build();
+            
+            // Set details using the setter method
+            if (details != null) {
+                event.setDetails(details);
+            }
             
             enrichEventWithRequestContext(event);
             auditEventRepository.save(event);

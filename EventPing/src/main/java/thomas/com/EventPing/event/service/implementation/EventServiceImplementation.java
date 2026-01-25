@@ -26,6 +26,7 @@ public class EventServiceImplementation implements EventService {
     private final ParticipantRepository participantRepository;
     private final EventMapper eventMapper;
     private final RateLimitService rateLimitService;
+    private final thomas.com.EventPing.security.service.AuditLoggingService auditLoggingService;
 
     @Override
     public EventResponseDto createEvent(User creator, CreateEventRequest request) {
@@ -45,6 +46,16 @@ public class EventServiceImplementation implements EventService {
 
         Event savedEvent = eventRepository.save(event);
 
+        // Log event creation
+        auditLoggingService.logDataModification(
+                creator.getEmail(),
+                thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.DATA_CREATE,
+                "Event",
+                savedEvent.getId().toString(),
+                null,
+                savedEvent
+        );
+
         return toResponseDto(savedEvent);
     }
 
@@ -53,6 +64,63 @@ public class EventServiceImplementation implements EventService {
         Event event = eventRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
         return toResponseDto(event);
+    }
+
+    @Override
+    public EventResponseDto getEventById(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+        return toResponseDto(event);
+    }
+
+    @Override
+    public EventResponseDto updateEvent(Long id, CreateEventRequest request) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Store old values for audit logging
+        Event oldEvent = new Event();
+        oldEvent.setId(event.getId());
+        oldEvent.setTitle(event.getTitle());
+        oldEvent.setDescription(event.getDescription());
+        oldEvent.setEventDateTime(event.getEventDateTime());
+
+        // Update event fields
+        event.setTitle(request.getTitle());
+        event.setDescription(request.getDescription());
+        event.setEventDateTime(request.getEventDateTime());
+
+        Event savedEvent = eventRepository.save(event);
+
+        // Log event modification
+        auditLoggingService.logDataModification(
+                event.getCreator().getEmail(),
+                thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.DATA_UPDATE,
+                "Event",
+                savedEvent.getId().toString(),
+                oldEvent,
+                savedEvent
+        );
+
+        return toResponseDto(savedEvent);
+    }
+
+    @Override
+    public void deleteEvent(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Log event deletion
+        auditLoggingService.logDataModification(
+                event.getCreator().getEmail(),
+                thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.DATA_DELETE,
+                "Event",
+                event.getId().toString(),
+                event,
+                null
+        );
+
+        eventRepository.deleteById(id);
     }
 
     @Override

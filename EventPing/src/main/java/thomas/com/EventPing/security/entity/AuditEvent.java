@@ -1,13 +1,14 @@
 package thomas.com.EventPing.security.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -69,9 +70,36 @@ public class AuditEvent {
     @Column(name = "error_message", length = 1000)
     private String errorMessage;
 
-    @Type(io.hypersistence.utils.hibernate.type.json.JsonType.class)
-    @Column(name = "details", columnDefinition = "jsonb")
-    private Map<String, Object> details;
+    @Column(name = "details", columnDefinition = "TEXT")
+    private String detailsJson;
+
+    // Helper methods for details JSON handling
+    @Transient
+    public Map<String, Object> getDetails() {
+        if (detailsJson == null || detailsJson.isEmpty()) {
+            return new HashMap<>();
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(detailsJson, Map.class);
+        } catch (Exception e) {
+            return new HashMap<>();
+        }
+    }
+
+    @Transient
+    public void setDetails(Map<String, Object> details) {
+        if (details == null || details.isEmpty()) {
+            this.detailsJson = null;
+            return;
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            this.detailsJson = mapper.writeValueAsString(details);
+        } catch (Exception e) {
+            this.detailsJson = null;
+        }
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(name = "severity", nullable = false, length = 20)

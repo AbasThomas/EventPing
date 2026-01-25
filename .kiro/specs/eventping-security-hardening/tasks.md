@@ -140,7 +140,7 @@ This implementation plan transforms the EventPing backend from a development pro
     - Add security event categorization and severity levels
     - _Requirements: 6.1, 6.2, 6.3_
 
-  - [-] 8.2 Write property test for audit logging
+  - [x] 8.2 Write property test for audit logging
     - **Property 7: Audit Logging Completeness**
     - **Validates: Requirements 6.1, 6.2, 6.3**
 

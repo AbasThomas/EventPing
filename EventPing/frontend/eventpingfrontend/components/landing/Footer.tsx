@@ -22,7 +22,7 @@ export function Footer() {
                 <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
               </div>
               <span className="font-medium tracking-tight text-white">
-                OpenRouter
+                EventPing
               </span>
             </div>
             <div className="flex gap-4 mt-6">
@@ -71,14 +71,12 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-indigo-400 transition-colors">
-                  Status
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-indigo-400 transition-colors">
-                  Partners
-                </a>
+                <Link
+                  href="/features"
+                  className="hover:text-indigo-400 transition-colors"
+                >
+                  Features
+                </Link>
               </li>
             </ul>
           </div>
@@ -93,17 +91,7 @@ export function Footer() {
               </li>
               <li>
                 <a href="#" className="hover:text-indigo-400 transition-colors">
-                  Announcements
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-indigo-400 transition-colors">
                   Support
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-indigo-400 transition-colors">
-                  About
                 </a>
               </li>
             </ul>
@@ -122,21 +110,16 @@ export function Footer() {
                   Terms
                 </a>
               </li>
-              <li>
-                <a href="#" className="hover:text-indigo-400 transition-colors">
-                  Careers
-                </a>
-              </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-600 font-light">
-          <p>© 2025 OpenRouter.ai. All rights reserved.</p>
+          <p>© 2026 EventPing. All rights reserved.</p>
           <div className="flex gap-6 mt-4 md:mt-0">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-500"></span>
-              All systems operational
+              System Operational
             </span>
           </div>
         </div>

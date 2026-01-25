@@ -6,10 +6,10 @@ export function Newsletter() {
       <div className="glass-panel rounded-2xl p-8 text-center relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none"></div>
         <h3 className="text-xl font-light text-white mb-2 relative z-10">
-          Stay updated with OpenRouter
+          Stay updated with EventPing
         </h3>
         <p className="text-slate-400 text-sm mb-6 font-light relative z-10">
-          Get the latest model releases and API updates.
+          Get the latest features and planning tips.
         </p>
         <form className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto relative z-10">
           <input

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventPing - Simplify Your Event Planning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&amp;display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Smooth fade for the background blur */
+        .hero-glow {
+            background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.25) 0%, rgba(15, 23, 42, 0) 70%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-panel-hover:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        /* Custom dot pattern for the flow connector */
+        .connector-dots {
+            background-image: radial-gradient(circle, currentColor 1px, transparent 1.5px);
+            background-size: 8px 8px;
+            background-repeat: repeat-x;
+            opacity: 0.6;
+        }
+        /* Global Fade In Animation */
+        @keyframes globalFadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .fade-in-page {
+            animation: globalFadeIn 0.6s ease-out forwards;
+        }
+        /* Entrance Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: opacity, transform;
+        }
+        .reveal-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Utility for hiding pages */
+        .page-hidden {
+            display: none;
+        }
+        /* Utility for hiding background elements */
+        .bg-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        .bg-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.5s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 antialiased selection:bg-indigo-500/30 selection:text-indigo-200 fade-in-page">
+
+    <!-- Marketing Backgrounds (Home Only) -->
+    <div id="marketing-backgrounds" class="bg-visible fixed inset-0 z-0 pointer-events-none transition-opacity duration-700">
+        <!-- Background (component) added by Aura -->
+        <div class="aura-background-component top-0 w-full h-screen absolute" data-alpha-mask="80" style="mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent)">
+            <div class="aura-background-component w-full top-0 saturate-150 absolute h-[800px]" data-alpha-mask="80" style="mask-image: linear-gradient(transparent, black 0%, black 80%, transparent);">
+                <div class="fixed top-0 left-0 right-0 h-[800px] hero-glow pointer-events-none z-0"></div>
+                <div class="fixed top-[-200px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-indigo-600/30 blur-[120px] rounded-full pointer-events-none z-0 animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Utility Background (Features Page) -->
+    <div id="utility-background" class="fixed inset-0 z-0 pointer-events-none opacity-0 transition-opacity duration-700 bg-slate-950">
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-900/50 to-slate-950"></div>
+    </div>
+
+    <!-- Top Navigation -->
+    <nav class="fixed top-0 w-full z-50 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="navigateTo('home')">
+                <!-- Logo -->
+                <div class="w-6 h-6 rounded-full border border-indigo-500 flex items-center justify-center shadow-[0_0_10px_rgba(99,102,241,0.5)]">
+                    <div class="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                </div>
+                <span class="font-medium tracking-tight text-white">EventPing</span>
+            </div>
+
+            <!-- Desktop Nav Items -->
+            <div class="hidden xl:flex items-center gap-6 text-sm text-slate-400 font-light" id="nav-links">
+                <a href="#" onclick="event.preventDefault(); navigateTo('features')" id="nav-features" class="hover:text-white transition-colors">Features</a>
+                <a href="#" class="hover:text-white transition-colors">Plans</a>
+                <a href="#" class="hover:text-white transition-colors">Docs</a>
+                <a href="#" class="hover:text-white transition-colors">Support</a>
+                <a href="#" class="hover:text-white transition-colors">About</a>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <button class="text-sm font-light text-slate-300 hover:text-white transition-colors">Sign in</button>
+                <button class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-full font-medium transition-all shadow-[0_0_15px_-3px_rgba(99,102,241,0.6)]">Sign up</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="z-10 pt-32 pb-20 relative min-h-screen">
+        
+        <!-- PAGE: HOME -->
+        <div id="page-home">
+            <!-- Main Hero -->
+            <section class="text-center max-w-5xl mr-auto mb-24 ml-auto pr-4 pl-4">
+                
+                <div class="reveal" style="transition-delay: 200ms;">
+                    <a href="#" class="inline-flex items-center gap-2 hover:bg-indigo-500/20 transition-colors text-xs text-indigo-300 bg-indigo-500/10 border-indigo-500/30 border rounded-full mb-8 pt-1 pr-3 pb-1 pl-3">
+                        <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                        </span>
+                        New: Smart Reminders 2.0
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-right" class="lucide lucide-arrow-right w-3 h-3"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    </a>
+                </div>
+
+                <div class="reveal" style="transition-delay: 300ms;">
+                    <h1 class="md:text-6xl leading-[1.1] text-4xl text-white tracking-tight font-extralight mb-6">
+                        Seamless Event Planning <br>
+                        <span class="bg-clip-text font-light text-transparent bg-gradient-to-br from-[#d0d7fb] to-[#716afb]">For Everyone</span>
+                    </h1>
+
+                    <p class="text-lg md:text-xl text-slate-400 font-light tracking-wide mb-10 max-w-2xl mx-auto">
+                        Effortlessly create events, invite guests, and ensure everyone shows up on time with automated reminders.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 gap-x-4 gap-y-4 items-center justify-center reveal" style="transition-delay: 500ms;">
+                    <div class="inline-block bg-transparent">
+                      <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap'); @property --gradient-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; } @property --gradient-angle-offset { syntax: "<angle>"; initial-value: 0deg; inherits: false; } @property --gradient-percent { syntax: "<percentage>"; initial-value: 20%; inherits: false; } @property --gradient-shine { syntax: "<color>"; initial-value: #8484ff; inherits: false; } .shiny-cta { --gradient-angle: 0deg; --gradient-angle-offset: 0deg; --gradient-percent: 20%; --gradient-shine: #8484ff; --shadow-size: 2px; position: relative; overflow: hidden; border-radius: 9999px; padding: 1.25rem 2.5rem; font-size: 1.125rem; line-height: 1.2; font-weight: 500; color: #ffffff; background: linear-gradient(#000000, #000000) padding-box, conic-gradient( from calc(var(--gradient-angle) - var(--gradient-angle-offset)), transparent 0%, #1d4ed8 5%, var(--gradient-shine) 15%, #1d4ed8 30%, transparent 40%, transparent 100% ) border-box; border: 2px solid transparent; box-shadow: inset 0 0 0 1px #1a1818; outline: none; transition: --gradient-angle-offset 800ms cubic-bezier(0.25, 1, 0.5, 1), --gradient-percent 800ms cubic-bezier(0.25, 1, 0.5, 1), --gradient-shine 800ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s; cursor: pointer; isolation: isolate; outline-offset: 4px; font-family: 'Inter', 'Helvetica Neue', sans-serif; z-index: 0; animation: border-spin 2.5s linear infinite; } @keyframes border-spin { to { --gradient-angle: 360deg; } } .shiny-cta:active { transform: translateY(1px); } .shiny-cta::before { content: ''; pointer-events: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 0; --size: calc(100% - 6px); --position: 2px; --space: 4px; width: var(--size); height: var(--size); background: radial-gradient(circle at var(--position) var(--position), white 0.5px, transparent 0) padding-box; background-size: var(--space) var(--space); background-repeat: space; mask-image: conic-gradient( from calc(var(--gradient-angle) + 45deg), black, transparent 10% 90%, black ); border-radius: inherit; opacity: 0.4; pointer-events: none; } .shiny-cta::after { content: ''; pointer-events: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 1; width: 100%; aspect-ratio: 1; background: linear-gradient(-50deg, transparent, #1d4ed8, transparent); mask-image: radial-gradient(circle at bottom, transparent 40%, black); opacity: 0.6; animation: shimmer 4s linear infinite; animation-play-state: running; } .shiny-cta span { position: relative; z-index: 2; display: inline-block; } .shiny-cta span::before { content: ''; pointer-events: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: -1; --size: calc(100% + 1rem); width: var(--size); height: var(--size); box-shadow: inset 0 -1ex 2rem 4px #1d4ed8; opacity: 0; border-radius: inherit; transition: opacity 800ms cubic-bezier(0.25, 1, 0.5, 1); animation: breathe 4.5s linear infinite; } @keyframes shimmer { to { transform: translate(-50%, -50%) rotate(360deg);} } @keyframes breathe { 0%, 100% { transform: translate(-50%, -50%) scale(1);} 50% { transform: translate(-50%, -50%) scale(1.20);} }
+                      </style>
+                      <button class="shiny-cta focus:outline-none">
+                        <span class="">Start Planning</span>
+                      </button>
+                    </div>
+                    <button onclick="navigateTo('features')" class="glass-panel hover:bg-white/5 transition-all flex sm:w-auto text-lg font-medium bg-[#060a21]/0 w-full border-0 rounded-full pt-3.5 pr-6 pb-3.5 pl-6 gap-x-2 gap-y-2 items-center justify-center">
+                        Explore Features
+                    </button>
+                </div>
+            </section>
+
+            <!-- Key Metrics -->
+            <section class="max-w-7xl mx-auto px-4 mb-32 reveal">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 border-y bg-slate-900/20 border-white/5 pt-12 pb-12 gap-x-8 gap-y-8">
+                    <div class="text-center group reveal" style="transition-delay: 0ms;">
+                        <h3 class="text-3xl font-light text-white mb-1 group-hover:text-indigo-400 transition-colors">10k+</h3>
+                        <p class="uppercase text-sm font-light text-slate-500">Events Created</p>
+                    </div>
+                    <div class="group text-center reveal" style="transition-delay: 100ms;">
+                        <h3 class="text-3xl font-light text-white mb-1 group-hover:text-indigo-400 transition-colors">50k+</h3>
+                        <p class="uppercase text-sm font-light text-slate-500">Reminders Sent</p>
+                    </div>
+                    <div class="text-center group reveal" style="transition-delay: 200ms;">
+                        <h3 class="text-3xl font-light text-white mb-1 group-hover:text-indigo-400 transition-colors">99.9%</h3>
+                        <p class="uppercase text-sm font-light text-slate-500">Uptime</p>
+                    </div>
+                    <div class="text-center group reveal" style="transition-delay: 300ms;">
+                        <h3 class="text-3xl font-light text-white mb-1 group-hover:text-indigo-400 transition-colors">5k+</h3>
+                        <p class="uppercase text-sm font-light text-slate-500">Active Users</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- User Flow -->
+            <section class="overflow-hidden bg-[#0c0d1c]/0 w-full mb-32 py-24 relative reveal">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(50,45,100,0.15)_0,rgba(15,23,42,0)_70%)] opacity-80 mix-blend-screen pointer-events-none"></div>
+                
+                <div class="z-10 max-w-7xl mr-auto ml-auto pr-4 pl-4 relative">
+                    <div class="text-center mb-20 reveal">
+                        <h2 class="md:text-4xl text-3xl font-light text-white tracking-tight mb-4 drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]">How It Works</h2>
+                        <p class="text-slate-400 font-light text-base md:text-lg">Plan your perfect event in 4 simple steps</p>
+                    </div>
+
+                    <div class="relative grid grid-cols-1 md:grid-cols-4 gap-8">
+                        <!-- Dynamic Progress Connectors (Desktop Only) -->
+                        <div class="hidden md:block absolute top-[2.5rem] left-0 right-0 w-full h-1 z-0 px-[12%] pointer-events-none reveal">
+                            <div class="flex items-center w-full h-full justify-between">
+                                <div class="flex-1 h-px connector-dots text-cyan-500 mx-2"></div>
+                                <div class="w-16"></div>
+                                <div class="flex-1 h-px connector-dots text-purple-500 mx-2"></div>
+                                <div class="w-16"></div>
+                                <div class="flex-1 h-px connector-dots text-emerald-500 mx-2"></div>
+                            </div>
+                        </div>
+
+                        <!-- Step 1 -->
+                        <div class="relative z-10 group flex flex-col items-center text-center p-6 rounded-2xl bg-slate-900/60 border border-cyan-500/10 backdrop-blur-md shadow-[0_8px_30px_-12px_rgba(6,182,212,0.15)] hover:border-cyan-500/30 hover:shadow-[0_12px_40px_-12px_rgba(6,182,212,0.25)] hover:-translate-y-1 transition-all duration-500 reveal" style="transition-delay: 100ms;">
+                            <div class="absolute top-3 right-3 w-2 h-2 text-cyan-500/40 opacity-50">
+                                <svg viewBox="0 0 10 10" fill="currentColor"><path d="M5 0L10 10H0L5 0Z"></path></svg>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 flex items-center justify-center mb-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] group-hover:scale-110 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus w-7 h-7 text-cyan-300 drop-shadow-[0_2px_8px_rgba(34,211,238,0.5)]"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-2 tracking-tight">Create Account</h3>
+                            <p class="text-sm text-cyan-200/50 font-normal leading-relaxed">Sign up in seconds</p>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="relative z-10 group flex flex-col items-center text-center p-6 rounded-2xl bg-slate-900/60 border border-violet-500/10 backdrop-blur-md shadow-[0_8px_30px_-12px_rgba(139,92,246,0.15)] hover:border-violet-500/30 hover:shadow-[0_12px_40px_-12px_rgba(139,92,246,0.25)] hover:-translate-y-1 transition-all duration-500 reveal" style="transition-delay: 200ms;">
+                            <div class="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-violet-500/40 opacity-50"></div>
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500/10 to-transparent border border-violet-500/20 flex items-center justify-center mb-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] group-hover:scale-110 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-plus w-7 h-7 text-violet-300 drop-shadow-[0_2px_8px_rgba(167,139,250,0.5)]"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M10 16h4"/><path d="M12 14v4"/></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-2 tracking-tight">Create Event</h3>
+                            <p class="text-sm text-violet-200/50 font-normal leading-relaxed">Set date, time, and details</p>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="relative z-10 group flex flex-col items-center text-center p-6 rounded-2xl bg-slate-900/60 border border-emerald-500/10 backdrop-blur-md shadow-[0_8px_30px_-12px_rgba(16,185,129,0.15)] hover:border-emerald-500/30 hover:shadow-[0_12px_40px_-12px_rgba(16,185,129,0.25)] hover:-translate-y-1 transition-all duration-500 reveal" style="transition-delay: 300ms;">
+                            <div class="absolute top-3 right-3 w-1.5 h-1.5 bg-emerald-500/40 opacity-50 rotate-45"></div>
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 flex items-center justify-center mb-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] group-hover:scale-110 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users w-7 h-7 text-emerald-300 drop-shadow-[0_2px_8px_rgba(52,211,153,0.5)]"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-2 tracking-tight">Invite Guests</h3>
+                            <p class="text-sm text-emerald-200/50 font-normal leading-relaxed">Share the link instantly</p>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="relative z-10 group flex flex-col items-center text-center p-6 rounded-2xl bg-slate-900/60 border border-orange-500/10 backdrop-blur-md shadow-[0_8px_30px_-12px_rgba(249,115,22,0.15)] hover:border-orange-500/30 hover:shadow-[0_12px_40px_-12px_rgba(249,115,22,0.25)] hover:-translate-y-1 transition-all duration-500 reveal" style="transition-delay: 400ms;">
+                            <div class="absolute top-3 right-3 w-1.5 h-1.5 bg-orange-500/40 opacity-50 rotate-45 border border-orange-400"></div>
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 flex items-center justify-center mb-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] group-hover:scale-110 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell w-7 h-7 text-orange-300 drop-shadow-[0_2px_8px_rgba(251,146,60,0.5)]"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-2 tracking-tight">Automated Reminders</h3>
+                            <p class="text-sm text-orange-200/50 font-normal leading-relaxed">We handle the nudges</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Featured Features (Replacing Models) -->
+            <section class="max-w-7xl mx-auto px-4 mb-20 reveal">
+                <div class="flex items-end justify-between mb-8">
+                    <div class="">
+                        <h2 class="text-2xl font-semibold tracking-tight text-white flex items-center gap-2 cursor-pointer hover:text-indigo-400 transition-colors" onclick="navigateTo('features')">
+                            Powerful Features
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="chevron-right" class="lucide lucide-chevron-right w-5 h-5 text-slate-500"><path d="m9 18 6-6-6-6"></path></svg>
+                        </h2>
+                        <p class="text-sm text-slate-400 mt-2 font-light">Everything you need to manage events successfully</p>
+                    </div>
+                    <a href="#" onclick="event.preventDefault(); navigateTo('features')" class="hover:text-white transition-colors flex items-center gap-1 text-sm text-slate-400">
+                        View all <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-right" class="lucide lucide-arrow-right w-4 h-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Feature Card 1 -->
+                    <div class="glass-panel glass-panel-hover rounded-xl p-6 transition-all cursor-pointer reveal" style="transition-delay: 100ms;">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="flex text-lg font-bold text-slate-50 bg-slate-50 w-12 h-12 rounded-full items-center justify-center text-black" style="">SR</div>
+                            <div class="">
+                                <h3 class="text-lg font-medium text-white">Smart Reminders</h3>
+                                <p class="text-xs text-slate-500">Automated scheduling</p>
+                            </div>
+                        </div>
+                        <div class="h-px bg-white/5 w-full mb-6"></div>
+                        <div class="flex items-end justify-between">
+                            <div>
+                                <p class="text-xs text-slate-500 mb-1">Efficiency</p>
+                                <p class="text-lg font-medium text-white">100%</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-slate-500 mb-1">Impact</p>
+                                <p class="text-sm font-medium text-emerald-400">High</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature Card 2 -->
+                    <div class="glass-panel glass-panel-hover rounded-xl p-6 transition-all cursor-pointer reveal" style="transition-delay: 200ms;">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center font-bold">
+                                CP
+                            </div>
+                            <div class="">
+                                <h3 class="text-lg font-medium text-white">Collaborative Plans</h3>
+                                <p class="text-xs text-slate-500">Team coordination</p>
+                            </div>
+                        </div>
+                        <div class="h-px bg-white/5 w-full mb-6"></div>
+                        <div class="flex items-end justify-between">
+                            <div class="">
+                                <p class="text-xs text-slate-500 mb-1">Collaboration</p>
+                                <p class="text-lg font-medium text-white">Real-time</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-slate-500 mb-1">Users</p>
+                                <p class="text-sm font-medium text-emerald-400">Unlimited</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature Card 3 -->
+                    <div class="glass-panel glass-panel-hover rounded-xl p-6 transition-all cursor-pointer reveal" style="transition-delay: 300ms;">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center p-2">
+                               <svg viewBox="0 0 24 24" fill="#000"><circle cx="12" cy="12" r="10"/></svg>
+                            </div>
+                            <div class="">
+                                <h3 class="text-lg font-medium text-white">Instant Alerts</h3>
+                                <p class="text-xs text-slate-500">Never miss a beat</p>
+                            </div>
+                        </div>
+                        <div class="h-px bg-white/5 w-full mb-6"></div>
+                        <div class="flex items-end justify-between">
+                            <div class="">
+                                <p class="text-xs text-slate-500 mb-1">Speed</p>
+                                <p class="text-lg font-medium text-white">Instant</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-slate-500 mb-1">Reliability</p>
+                                <p class="text-sm font-medium text-emerald-400">99.9%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Testimonials (Replacing Agents) -->
+            <section class="max-w-7xl mx-auto px-4 mb-32 reveal">
+                <div class="flex items-end justify-between mb-8">
+                    <div class="">
+                        <h2 class="text-2xl font-semibold tracking-tight text-white flex items-center gap-2 cursor-pointer hover:text-indigo-400 transition-colors">
+                            Trusted by Planners
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="chevron-right" class="lucide lucide-chevron-right w-5 h-5 text-slate-500"><path d="m9 18 6-6-6-6"></path></svg>
+                        </h2>
+                        <p class="text-sm text-slate-400 mt-2 font-light">Join thousands of satisfied event organizers</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Testimonial 1 -->
+                    <div class="glass-panel rounded-xl overflow-hidden group cursor-pointer border border-white/5 hover:border-white/10 transition-colors reveal" style="transition-delay: 100ms;">
+                        <div class="h-48 bg-slate-900 relative flex items-center justify-center p-6 border-b border-white/5 group-hover:bg-slate-800/80 transition-colors">
+                            <div class="w-full bg-slate-950 rounded-lg p-4 shadow-xl border border-white/5 text-sm font-mono text-slate-400">
+                                <p class=""><span class="text-slate-500">"EventPing saved</span> <span class="text-indigo-300 border-b border-indigo-500/50">our conference"</span></p>
+                                <p class="mt-2"><span class="text-slate-500">No more</span> <span class="text-indigo-300 border-b border-indigo-500/50">missed deadlines.</span></p>
+                            </div>
+                        </div>
+                        <div class="p-5 flex items-start gap-4 bg-slate-950/30">
+                            <div class="w-10 h-10 rounded-lg bg-slate-900 border border-white/10 flex items-center justify-center shrink-0">
+                                 <div class="grid grid-cols-2 gap-0.5">
+                                     <div class="w-1.5 h-1.5 bg-indigo-500"></div><div class="w-1.5 h-1.5 bg-indigo-500"></div>
+                                     <div class="w-1.5 h-1.5 bg-indigo-500"></div><div class="w-1.5 h-1.5 opacity-0"></div>
+                                 </div>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-medium text-white mb-1">Sarah Jenkins</h3>
+                                <p class="text-xs text-slate-500 font-light leading-relaxed">Event Coordinator</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Testimonial 2 -->
+                    <div class="glass-panel rounded-xl overflow-hidden group cursor-pointer border border-white/5 hover:border-white/10 transition-colors reveal" style="transition-delay: 200ms;">
+                        <div class="h-48 bg-black relative flex flex-col items-center justify-center p-6 border-b border-white/5 group-hover:bg-slate-950 transition-colors">
+                             <div class="w-full bg-slate-900/50 rounded-lg p-3 border border-white/10 text-[10px] text-slate-500">
+                                <p class="mb-4">"The automated reminders are a game changer regarding attendance."</p>
+                            </div>
+                        </div>
+                        <div class="p-5 flex items-start gap-4 bg-slate-950/30">
+                            <div class="w-10 h-10 rounded-lg bg-black border border-white/10 flex items-center justify-center shrink-0">
+                                <div class="w-4 h-4 border-2 border-white rounded-sm rotate-45"></div>
+                            </div>
+                            <div class="">
+                                <h3 class="text-base font-medium text-white mb-1">Mike Ross</h3>
+                                <p class="text-xs text-slate-500 font-light leading-relaxed">Community Manager</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Testimonial 3 -->
+                    <div class="glass-panel rounded-xl overflow-hidden group cursor-pointer border border-white/5 hover:border-white/10 transition-colors reveal" style="transition-delay: 300ms;">
+                        <div class="h-48 bg-[#111] relative flex items-center justify-center p-6 border-b border-white/5 group-hover:bg-black transition-colors">
+                             <div class="border border-yellow-400/30 bg-yellow-400/5 px-4 py-2 rounded flex items-center gap-2">
+                                 <span class="text-yellow-400 font-mono text-sm">★★★★★</span>
+                            </div>
+                        </div>
+                        <div class="p-5 flex items-start gap-4 bg-slate-950/30">
+                             <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user w-5 h-5 text-black"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-medium text-white mb-1">Emily Tao</h3>
+                                <p class="text-xs text-slate-500 font-light leading-relaxed">Freelance Planner</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Newsletter -->
+            <section class="max-w-3xl mx-auto px-4 mb-24 reveal">
+                <div class="glass-panel rounded-2xl p-8 text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none"></div>
+                    <h3 class="text-xl font-light text-white mb-2 relative z-10">Stay updated with EventPing</h3>
+                    <p class="text-slate-400 text-sm mb-6 font-light relative z-10">Get the latest features and planning tips.</p>
+                    <form class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto relative z-10">
+                        <input type="email" placeholder="Enter your email" class="flex-1 placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-white bg-slate-950/50 border-white/10 border rounded-lg pt-2 pr-4 pb-2 pl-4">
+                        <button class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-6 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-indigo-900/20">Subscribe</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <!-- PAGE: FEATURES (Initially Hidden) -->
+        <div id="page-features" class="page-hidden fade-in-page">
+            <div class="max-w-7xl mx-auto px-4 md:px-6">
+                <!-- Header -->
+                <div class="mb-10 reveal">
+                    <h1 class="text-3xl md:text-4xl font-light text-white tracking-tight mb-4">Features</h1>
+                    <p class="text-slate-400 font-light text-lg max-w-2xl">Discover tools designed to make your events a success.</p>
+                </div>
+
+                <!-- Features Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-20">
+                    <!-- Feature Card 1 -->
+                    <div class="glass-panel glass-panel-hover rounded-xl p-5 cursor-pointer group reveal" style="transition-delay: 50ms;">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-slate-50 text-black flex items-center justify-center font-bold text-sm">SR</div>
+                                <div>
+                                    <h3 class="font-medium text-white group-hover:text-indigo-400 transition-colors">Smart Reminders</h3>
+                                    <p class="text-xs text-slate-500">Automated</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 line-clamp-2 mb-4 leading-relaxed">Set it and forget it. We send timely notifications to all confirmed guests.</p>
+                    </div>
+
+                    <!-- Feature Card 2 -->
+                    <div class="glass-panel glass-panel-hover rounded-xl p-5 cursor-pointer group reveal" style="transition-delay: 100ms;">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-white text-black flex items-center justify-center font-bold text-sm">G</div>
+                                <div>
+                                    <h3 class="font-medium text-white group-hover:text-indigo-400 transition-colors">Guest Lists</h3>
+                                    <p class="text-xs text-slate-500">Management</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 line-clamp-2 mb-4 leading-relaxed">Easy import and export of guest lists. Track RSVPs in real-time.</p>
+                    </div>
+
+                    <!-- Feature Card 3 -->
+                    <div class="glass-panel glass-panel-hover rounded-xl p-5 cursor-pointer group reveal" style="transition-delay: 150ms;">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-white text-black flex items-center justify-center font-bold text-sm p-2"><svg viewBox="0 0 24 24" fill="#000"><circle cx="12" cy="12" r="10"/></svg></div>
+                                <div>
+                                    <h3 class="font-medium text-white group-hover:text-indigo-400 transition-colors">Analytics</h3>
+                                    <p class="text-xs text-slate-500">Insights</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 line-clamp-2 mb-4 leading-relaxed">Understand attendance patterns and optimize your future events.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 bg-slate-950 pt-16 pb-12 relative z-10 reveal">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+                <div class="col-span-2 md:col-span-1">
+                    <div class="flex items-center gap-2 mb-4 cursor-pointer" onclick="navigateTo('home')">
+                        <div class="w-5 h-5 rounded-full border border-indigo-500 flex items-center justify-center">
+                            <div class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
+                        </div>
+                        <span class="font-medium tracking-tight text-white">EventPing</span>
+                    </div>
+                    <div class="flex gap-4 mt-6">
+                        <a href="#" class="text-slate-500 hover:text-indigo-400 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="twitter" class="lucide lucide-twitter w-5 h-5"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg></a>
+                        <a href="#" class="text-slate-500 hover:text-indigo-400 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="github" class="lucide lucide-github w-5 h-5"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg></a>
+                    </div>
+                </div>
+                
+                <div class="">
+                    <h4 class="text-sm font-semibold text-white mb-4">Product</h4>
+                    <ul class="space-y-3 text-sm font-light text-slate-400">
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors">Pricing</a></li>
+                        <li class=""><a href="#" class="hover:text-indigo-400 transition-colors">Enterprise</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors">Features</a></li>
+                    </ul>
+                </div>
+
+                <div class="">
+                    <h4 class="text-sm font-semibold text-white mb-4">Resources</h4>
+                    <ul class="space-y-3 text-sm font-light text-slate-400">
+                        <li class=""><a href="#" class="hover:text-indigo-400 transition-colors">Docs</a></li>
+                        <li class=""><a href="#" class="hover:text-indigo-400 transition-colors">Support</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-semibold text-white mb-4">Legal</h4>
+                    <ul class="space-y-3 text-sm font-light text-slate-400">
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors">Privacy</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-600 font-light">
+                <p>© 2026 EventPing. All rights reserved.</p>
+                <div class="flex gap-6 mt-4 md:mt-0">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                        System Operational
+                    </span>
+                </div>
+            </div>
+        </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // Reveal on scroll
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.05
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        function initReveal() {
+             const elements = document.querySelectorAll('.reveal');
+             elements.forEach(el => observer.observe(el));
+        }
+
+        document.addEventListener("DOMContentLoaded", initReveal);
+
+        // Navigation Logic
+        function navigateTo(pageId) {
+            const homePage = document.getElementById('page-home');
+            const featuresPage = document.getElementById('page-features');
+            const featuresNavLink = document.getElementById('nav-features');
+            
+            // Background Elements
+            const marketingBg = document.getElementById('marketing-backgrounds');
+            const utilityBg = document.getElementById('utility-background');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (pageId === 'features') {
+                homePage.classList.add('page-hidden');
+                featuresPage.classList.remove('page-hidden');
+                
+                // Toggle Backgrounds
+                marketingBg.classList.remove('bg-visible');
+                marketingBg.classList.add('bg-hidden');
+                
+                utilityBg.classList.remove('bg-hidden');
+                utilityBg.classList.add('bg-visible');
+
+                // Update Nav State
+                featuresNavLink.classList.remove('text-slate-400');
+                featuresNavLink.classList.add('text-white');
+                
+                setTimeout(initReveal, 50);
+            } else {
+                featuresPage.classList.add('page-hidden');
+                homePage.classList.remove('page-hidden');
+
+                // Toggle Backgrounds
+                utilityBg.classList.remove('bg-visible');
+                utilityBg.classList.add('bg-hidden');
+
+                marketingBg.classList.remove('bg-hidden');
+                marketingBg.classList.add('bg-visible');
+
+                // Update Nav State
+                featuresNavLink.classList.remove('text-white');
+                featuresNavLink.classList.add('text-slate-400');
+                
+                setTimeout(initReveal, 50);
+            }
+        }
+    </script>
+</body>
+</html>

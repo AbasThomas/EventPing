@@ -17,38 +17,59 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Custom animations */
-@keyframes fadeIn {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+/* Custom animations from Template */
+@keyframes globalFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+.fade-in-page {
+    animation: globalFadeIn 0.6s ease-out forwards;
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
-  50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.6); }
+/* Entrance Animations */
+.reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: opacity, transform;
+}
+.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.6s ease-out forwards;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-/* Glass effect */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-panel:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-/* Hero glow effect */
+/* Smooth fade for the background blur */
 .hero-glow {
-  background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.25) 0%, rgba(15, 23, 42, 0) 70%);
+    background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.25) 0%, rgba(15, 23, 42, 0) 70%);
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-hover:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Custom dot pattern for the flow connector */
+.connector-dots {
+    background-image: radial-gradient(circle, currentColor 1px, transparent 1.5px);
+    background-size: 8px 8px;
+    background-repeat: repeat-x;
+    opacity: 0.6;
+}
+
+/* Utility for hiding background elements */
+.bg-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+.bg-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.5s ease;
 }

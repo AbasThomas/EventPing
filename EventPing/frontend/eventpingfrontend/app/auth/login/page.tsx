@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import { apiFetch } from '@/lib/api';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
@@ -21,8 +22,16 @@ export default function LoginPage() {
     setError('');
 
     try {
-      await login(email, password);
-      router.push('/dashboard');
+      const response = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.token && response.token.accessToken && response.user) {
+        login(response.token.accessToken, response.user);
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to login');
     } finally {
@@ -98,21 +107,25 @@ export default function LoginPage() {
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-4 rounded-lg transition-all shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] hover:shadow-[0_0_25px_-5px_rgba(99,102,241,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Signing in...
+                </>
               ) : (
                 <>
-                  Sign In <ArrowRight className="h-4 w-4" />
+                  Sign in
+                  <ArrowRight className="h-5 w-5" />
                 </>
               )}
             </button>
-          </form>
 
-          <div className="mt-6 text-center text-sm text-slate-400">
-            Don't have an account?{' '}
-            <Link href="/auth/register" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
-              Sign up for free
-            </Link>
-          </div>
+            <div className="text-center text-sm text-slate-400">
+              Don't have an account?{' '}
+              <Link href="/auth/register" className="text-indigo-400 hover:text-indigo-300 font-medium">
+                Sign up
+              </Link>
+            </div>
+          </form>
         </div>
       </div>
     </PageLayout>

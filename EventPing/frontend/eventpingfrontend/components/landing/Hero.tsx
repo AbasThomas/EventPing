@@ -3,8 +3,11 @@
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { ShinyButton } from '../ui/shiny-button';
+import { useAuth } from '@/lib/auth-context';
 
 export function Hero() {
+  const { user } = useAuth();
+
   return (
     <section className="text-center max-w-5xl mx-auto px-4 mb-24 pt-32">
       <div className="reveal" style={{ transitionDelay: '200ms' }}>
@@ -39,7 +42,9 @@ export function Hero() {
         className="flex flex-col sm:flex-row gap-4 gap-x-4 gap-y-4 items-center justify-center reveal"
         style={{ transitionDelay: '500ms' }}
       >
-        <ShinyButton>Start Planning</ShinyButton>
+        <Link href={user ? "/dashboard" : "/auth/register"}>
+          <ShinyButton>Start Planning</ShinyButton>
+        </Link>
         <Link
           href="/features"
           className="glass-panel hover:bg-white/5 transition-all flex sm:w-auto text-lg font-medium bg-[#060a21]/0 w-full border-0 rounded-full pt-3.5 pr-6 pb-3.5 pl-6 gap-x-2 gap-y-2 items-center justify-center text-white"

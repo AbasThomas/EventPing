@@ -23,8 +23,6 @@ export function Navbar() {
     router.push(path);
   };
 
-  const isFeatures = pathname === '/features';
-
   return (
     <nav
       className={`fixed top-0 w-full z-50 border-b transition-all duration-300 ${
@@ -55,18 +53,38 @@ export function Navbar() {
           >
             Features
           </Link>
-          <a href="#" className="hover:text-white transition-colors">
+          <Link
+            href="/plans"
+            className={`transition-colors hover:text-white ${
+              pathname === '/plans' ? 'text-white' : ''
+            }`}
+          >
             Plans
-          </a>
-          <a href="#" className="hover:text-white transition-colors">
+          </Link>
+          <Link
+            href="/docs"
+            className={`transition-colors hover:text-white ${
+              pathname === '/docs' ? 'text-white' : ''
+            }`}
+          >
             Docs
-          </a>
-          <a href="#" className="hover:text-white transition-colors">
+          </Link>
+          <Link
+            href="/support"
+            className={`transition-colors hover:text-white ${
+              pathname === '/support' ? 'text-white' : ''
+            }`}
+          >
             Support
-          </a>
-          <a href="#" className="hover:text-white transition-colors">
+          </Link>
+          <Link
+            href="/about"
+            className={`transition-colors hover:text-white ${
+              pathname === '/about' ? 'text-white' : ''
+            }`}
+          >
             About
-          </a>
+          </Link>
         </div>
 
         <div className="flex items-center gap-4">

@@ -118,8 +118,8 @@ public class DatabaseSecurityConfig {
         // Pool name for monitoring
         config.setPoolName("EventPing-SecurePool");
         
-        // Register JMX for monitoring
-        config.setRegisterMbeans(true);
+        // Disable JMX registration to avoid conflicts during development restarts
+        config.setRegisterMbeans(false);
         
         HikariDataSource dataSource = new HikariDataSource(config);
         

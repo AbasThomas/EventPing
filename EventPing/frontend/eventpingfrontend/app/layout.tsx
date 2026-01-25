@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 import { ScrollReveal } from "@/components/landing/ScrollReveal";
+import { AuthProvider } from "@/lib/auth-context";
 
 export default function RootLayout({
   children,
@@ -22,8 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} antialiased font-sans`}>
-        <ScrollReveal />
-        {children}
+        <AuthProvider>
+          <ScrollReveal />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -23,6 +23,39 @@ public class UserServiceImplementation implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final thomas.com.EventPing.security.service.AuditLoggingService auditLoggingService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    @Override
+    public UserResponseDto registerUser(thomas.com.EventPing.User.dtos.RegisterRequest request) {
+        log.info("Registering user with email: {}", request.getEmail());
+        
+        // Check if email already exists
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already registered");
+        }
+
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRole(User.UserRole.USER);
+        
+        User savedUser = userRepository.save(user);
+        
+        // Log user registration
+        auditLoggingService.logCustomEvent(
+                thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.USER_CREATED,
+                savedUser.getEmail(),
+                "REGISTER",
+                "User",
+                null,
+                null,
+                thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.LOW
+        );
+        
+        return userMapper.toUserResponseDto(savedUser);
+    }
 
     @Override
     public UserResponseDto createUser(thomas.com.EventPing.User.dtos.UserRequest request) {

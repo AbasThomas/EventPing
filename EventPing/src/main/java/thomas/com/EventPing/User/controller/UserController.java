@@ -29,7 +29,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDto> registerUser(
-            @Valid @RequestBody UserRequest request,
+            @Valid @RequestBody thomas.com.EventPing.User.dtos.RegisterRequest request,
             HttpServletRequest httpRequest) {
         
         // Log user registration attempt
@@ -43,7 +43,7 @@ public class UserController {
                 thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.LOW
         );
         
-        UserResponseDto response = userService.createUser(request);
+        UserResponseDto response = userService.registerUser(request);
         
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

@@ -291,7 +291,7 @@ public class JwtAuthenticationService {
             
             // Log session termination
             auditLoggingService.logSessionEvent(
-                    thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.SESSION_LOGOUT,
+                    thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.SESSION_END,
                     claims.getSubject(), 
                     null, // session ID not available here
                     ipAddress);

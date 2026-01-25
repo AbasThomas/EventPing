@@ -163,13 +163,13 @@ This implementation plan transforms the EventPing backend from a development pro
     - Add rate limiting to registration endpoint
     - _Requirements: 1.1, 1.5, 3.1_
 
-  - [-] 9.2 Secure Event controller with proper access controls
+  - [x] 9.2 Secure Event controller with proper access controls
     - Add authentication to event creation and modification
     - Implement event ownership validation
     - Add rate limiting to event creation
     - _Requirements: 1.1, 1.5, 3.1_
 
-  - [ ] 9.3 Secure Participant controller and public endpoints
+  - [x] 9.3 Secure Participant controller and public endpoints
     - Maintain public access for event joining
     - Add rate limiting to participant registration
     - Implement email validation for participants
@@ -182,7 +182,7 @@ This implementation plan transforms the EventPing backend from a development pro
     - _Requirements: 1.1, 1.5, 3.1_
 
 - [ ] 10. Implement comprehensive error handling
-  - [ ] 10.1 Create global exception handler
+  - [x] 10.1 Create global exception handler
     - Implement centralized exception handling
     - Create secure error response models
     - Add proper HTTP status codes for security errors

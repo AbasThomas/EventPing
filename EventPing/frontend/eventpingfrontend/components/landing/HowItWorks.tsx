@@ -1,6 +1,6 @@
 'use client';
 
-import { UserPlus, CalendarPlus, Users, Bell } from 'lucide-react';
+import { UserPlus, CreditCard, KeyRound, Code2 } from 'lucide-react';
 
 export function HowItWorks() {
   return (
@@ -10,10 +10,11 @@ export function HowItWorks() {
       <div className="z-10 max-w-7xl mx-auto px-4 relative">
         <div className="text-center mb-20 reveal">
           <h2 className="md:text-4xl text-3xl font-light text-white tracking-tight mb-4 drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]">
-            How It Works
+            How it works
           </h2>
           <p className="text-slate-400 font-light text-base md:text-lg">
-            Plan your perfect event in 4 simple steps
+            Connect to multi-model APIs in 3 quick steps—no-code barriers to
+            efficient development
           </p>
         </div>
 
@@ -35,7 +36,11 @@ export function HowItWorks() {
             style={{ transitionDelay: '100ms' }}
           >
             <div className="absolute top-3 right-3 w-2 h-2 text-cyan-500/40 opacity-50">
-              <svg viewBox="0 0 10 10" fill="currentColor" className="w-full h-full">
+              <svg
+                viewBox="0 0 10 10"
+                fill="currentColor"
+                className="w-full h-full"
+              >
                 <path d="M5 0L10 10H0L5 0Z"></path>
               </svg>
             </div>
@@ -43,7 +48,7 @@ export function HowItWorks() {
               <UserPlus className="w-7 h-7 text-cyan-300 drop-shadow-[0_2px_8px_rgba(34,211,238,0.5)]" />
             </div>
             <h3 className="text-lg font-bold text-white mb-2 tracking-tight">
-              Create Account
+              Create account
             </h3>
             <p className="text-sm text-cyan-200/50 font-normal leading-relaxed">
               Sign up in seconds
@@ -57,13 +62,13 @@ export function HowItWorks() {
           >
             <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-violet-500/40 opacity-50"></div>
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500/10 to-transparent border border-violet-500/20 flex items-center justify-center mb-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] group-hover:scale-110 transition-transform duration-500">
-              <CalendarPlus className="w-7 h-7 text-violet-300 drop-shadow-[0_2px_8px_rgba(167,139,250,0.5)]" />
+              <CreditCard className="w-7 h-7 text-violet-300 drop-shadow-[0_2px_8px_rgba(167,139,250,0.5)]" />
             </div>
             <h3 className="text-lg font-bold text-white mb-2 tracking-tight">
-              Create Event
+              Buy credits
             </h3>
             <p className="text-sm text-violet-200/50 font-normal leading-relaxed">
-              Set date, time, and details
+              Pay only for what you use
             </p>
           </div>
 
@@ -74,13 +79,13 @@ export function HowItWorks() {
           >
             <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-emerald-500/40 opacity-50 rotate-45"></div>
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 flex items-center justify-center mb-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] group-hover:scale-110 transition-transform duration-500">
-              <Users className="w-7 h-7 text-emerald-300 drop-shadow-[0_2px_8px_rgba(52,211,153,0.5)]" />
+              <KeyRound className="w-7 h-7 text-emerald-300 drop-shadow-[0_2px_8px_rgba(52,211,153,0.5)]" />
             </div>
             <h3 className="text-lg font-bold text-white mb-2 tracking-tight">
-              Invite Guests
+              Get API Key
             </h3>
             <p className="text-sm text-emerald-200/50 font-normal leading-relaxed">
-              Share the link instantly
+              Instant access generated
             </p>
           </div>
 
@@ -91,13 +96,13 @@ export function HowItWorks() {
           >
             <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-orange-500/40 opacity-50 rotate-45 border border-orange-400"></div>
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 flex items-center justify-center mb-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] group-hover:scale-110 transition-transform duration-500">
-              <Bell className="w-7 h-7 text-orange-300 drop-shadow-[0_2px_8px_rgba(251,146,60,0.5)]" />
+              <Code2 className="w-7 h-7 text-orange-300 drop-shadow-[0_2px_8px_rgba(251,146,60,0.5)]" />
             </div>
             <h3 className="text-lg font-bold text-white mb-2 tracking-tight">
-              Automated Reminders
+              Unified Interface
             </h3>
             <p className="text-sm text-orange-200/50 font-normal leading-relaxed">
-              We handle the nudges
+              Call models via one API
             </p>
           </div>
         </div>
@@ -105,3 +110,4 @@ export function HowItWorks() {
     </section>
   );
 }
+

@@ -40,21 +40,24 @@ export function Navbar() {
           <div className="w-6 h-6 rounded-full border border-indigo-500 flex items-center justify-center shadow-[0_0_10px_rgba(99,102,241,0.5)]">
             <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
           </div>
-          <span className="font-medium tracking-tight text-white">EventPing</span>
+          <span className="font-medium tracking-tight text-white">OpenRouter</span>
         </div>
 
         {/* Desktop Nav Items */}
         <div className="hidden xl:flex items-center gap-6 text-sm text-slate-400 font-light">
           <Link
-            href="/features"
+            href="/models"
             className={`transition-colors hover:text-white ${
-              isFeatures ? 'text-white' : ''
+              pathname === '/models' ? 'text-white' : ''
             }`}
           >
-            Features
+            Models
           </Link>
           <a href="#" className="hover:text-white transition-colors">
-            Plans
+            Status
+          </a>
+          <a href="#" className="hover:text-white transition-colors">
+            Announcements
           </a>
           <a href="#" className="hover:text-white transition-colors">
             Docs
@@ -64,6 +67,15 @@ export function Navbar() {
           </a>
           <a href="#" className="hover:text-white transition-colors">
             About
+          </a>
+          <a href="#" className="hover:text-white transition-colors">
+            Partners
+          </a>
+          <a href="#" className="hover:text-white transition-colors">
+            Enterprise
+          </a>
+          <a href="#" className="hover:text-white transition-colors">
+            Pricing
           </a>
         </div>
 

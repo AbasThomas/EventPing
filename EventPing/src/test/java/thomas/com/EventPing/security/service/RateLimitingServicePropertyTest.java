@@ -7,6 +7,8 @@ import thomas.com.EventPing.config.RateLimitProperties;
 import thomas.com.EventPing.security.model.RateLimitTracking;
 import thomas.com.EventPing.security.model.RateLimitType;
 import thomas.com.EventPing.security.repository.RateLimitTrackingRepository;
+import thomas.com.EventPing.security.service.AuditLoggingService;
+import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -79,7 +81,7 @@ class RateLimitingServicePropertyTest {
         
         // Create fresh service for this test iteration
         InMemoryRateLimitRepository freshRepository = new InMemoryRateLimitRepository();
-        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties);
+        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties, auditLoggingService);
         
         int maxRequests = getMaxRequestsForType(type);
         
@@ -135,7 +137,7 @@ class RateLimitingServicePropertyTest {
         
         // Create fresh service for this test iteration
         InMemoryRateLimitRepository freshRepository = new InMemoryRateLimitRepository();
-        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties);
+        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties, auditLoggingService);
         
         int maxRequests = rateLimitProperties.getUser().getApiRequestsPerMinute();
         
@@ -196,7 +198,7 @@ class RateLimitingServicePropertyTest {
         
         // Create fresh service for this test iteration
         InMemoryRateLimitRepository freshRepository = new InMemoryRateLimitRepository();
-        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties);
+        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties, auditLoggingService);
         
         // Create an expired window tracking record
         RateLimitTracking expiredRecord = RateLimitTracking.builder()

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import thomas.com.EventPing.User.model.User;
 import thomas.com.EventPing.config.SecurityProperties;
 import thomas.com.EventPing.security.dto.JwtToken;
+import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 
@@ -22,6 +23,7 @@ class JwtAuthenticationServiceUnitTest {
 
     private JwtAuthenticationService jwtAuthenticationService;
     private SecurityProperties securityProperties;
+    private AuditLoggingService auditLoggingService;
 
     @BeforeEach
     void setUp() {
@@ -35,7 +37,8 @@ class JwtAuthenticationServiceUnitTest {
         jwt.setAudience("EventPing-Users");
         securityProperties.setJwt(jwt);
 
-        jwtAuthenticationService = new JwtAuthenticationService(securityProperties);
+        auditLoggingService = Mockito.mock(AuditLoggingService.class);
+        jwtAuthenticationService = new JwtAuthenticationService(securityProperties, auditLoggingService);
         jwtAuthenticationService.clearBlacklist();
     }
 
@@ -243,7 +246,7 @@ class JwtAuthenticationServiceUnitTest {
         jwt.setAudience("EventPing-Users");
         differentSecretProps.setJwt(jwt);
         
-        JwtAuthenticationService differentSecretService = new JwtAuthenticationService(differentSecretProps);
+        JwtAuthenticationService differentSecretService = new JwtAuthenticationService(differentSecretProps, auditLoggingService);
 
         // When & Then
         assertThatThrownBy(() -> differentSecretService.validateToken(jwtToken.getAccessToken()))
@@ -267,7 +270,7 @@ class JwtAuthenticationServiceUnitTest {
         jwt.setAudience("EventPing-Users");
         differentIssuerProps.setJwt(jwt);
         
-        JwtAuthenticationService differentIssuerService = new JwtAuthenticationService(differentIssuerProps);
+        JwtAuthenticationService differentIssuerService = new JwtAuthenticationService(differentIssuerProps, auditLoggingService);
         JwtToken jwtToken = differentIssuerService.generateToken(user);
 
         // When & Then
@@ -292,7 +295,7 @@ class JwtAuthenticationServiceUnitTest {
         jwt.setAudience("WrongAudience");
         differentAudienceProps.setJwt(jwt);
         
-        JwtAuthenticationService differentAudienceService = new JwtAuthenticationService(differentAudienceProps);
+        JwtAuthenticationService differentAudienceService = new JwtAuthenticationService(differentAudienceProps, auditLoggingService);
         JwtToken jwtToken = differentAudienceService.generateToken(user);
 
         // When & Then

@@ -7,6 +7,7 @@ import net.jqwik.api.lifecycle.BeforeProperty;
 import thomas.com.EventPing.User.model.User;
 import thomas.com.EventPing.config.SecurityProperties;
 import thomas.com.EventPing.security.dto.JwtToken;
+import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +22,7 @@ class JwtAuthenticationServicePropertyTest {
 
     private JwtAuthenticationService jwtAuthenticationService;
     private SecurityProperties securityProperties;
+    private AuditLoggingService auditLoggingService;
 
     @BeforeProperty
     void setUp() {
@@ -34,7 +36,8 @@ class JwtAuthenticationServicePropertyTest {
         jwt.setAudience("EventPing-Users");
         securityProperties.setJwt(jwt);
 
-        jwtAuthenticationService = new JwtAuthenticationService(securityProperties);
+        auditLoggingService = Mockito.mock(AuditLoggingService.class);
+        jwtAuthenticationService = new JwtAuthenticationService(securityProperties, auditLoggingService);
         
         // Clear blacklist before each test to avoid interference
         jwtAuthenticationService.clearBlacklist();
@@ -86,7 +89,7 @@ class JwtAuthenticationServicePropertyTest {
     void refreshTokenShouldGenerateNewValidTokens(@ForAll("validUsers") User user) {
         
         // Create a fresh service instance for this test iteration to avoid state sharing
-        JwtAuthenticationService freshService = new JwtAuthenticationService(securityProperties);
+        JwtAuthenticationService freshService = new JwtAuthenticationService(securityProperties, auditLoggingService);
         
         // Generate initial token
         JwtToken initialToken = freshService.generateToken(user);
@@ -125,7 +128,7 @@ class JwtAuthenticationServicePropertyTest {
     void blacklistedTokensShouldBeRejected(@ForAll("validUsers") User user) {
         
         // Create a fresh service instance for this test iteration to avoid state sharing
-        JwtAuthenticationService freshService = new JwtAuthenticationService(securityProperties);
+        JwtAuthenticationService freshService = new JwtAuthenticationService(securityProperties, auditLoggingService);
         
         // Generate token
         JwtToken jwtToken = freshService.generateToken(user);

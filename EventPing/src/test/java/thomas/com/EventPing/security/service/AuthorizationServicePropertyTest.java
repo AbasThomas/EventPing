@@ -29,13 +29,16 @@ class AuthorizationServicePropertyTest {
     
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private AuditLoggingService auditLoggingService;
     
     private AuthorizationService authorizationService;
 
     @BeforeProperty
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        authorizationService = new AuthorizationService(eventRepository, userRepository);
+        authorizationService = new AuthorizationService(eventRepository, userRepository, auditLoggingService);
     }
 
     @Property(tries = 100)

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import thomas.com.EventPing.User.model.User;
 import thomas.com.EventPing.config.SecurityProperties;
 import thomas.com.EventPing.security.dto.JwtToken;
+import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +22,7 @@ class AuthenticationFailureTest {
 
     private JwtAuthenticationService jwtAuthenticationService;
     private PasswordService passwordService;
+    private AuditLoggingService auditLoggingService;
 
     @BeforeEach
     void setUp() {
@@ -34,7 +36,8 @@ class AuthenticationFailureTest {
         jwt.setAudience("EventPing-Users");
         securityProperties.setJwt(jwt);
 
-        jwtAuthenticationService = new JwtAuthenticationService(securityProperties);
+        auditLoggingService = Mockito.mock(AuditLoggingService.class);
+        jwtAuthenticationService = new JwtAuthenticationService(securityProperties, auditLoggingService);
         jwtAuthenticationService.clearBlacklist();
         passwordService = new PasswordService();
     }

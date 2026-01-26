@@ -12,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import io.jsonwebtoken.JwtException;
+import thomas.com.EventPing.User.exception.UserAlreadyExistsException;
 import thomas.com.EventPing.security.dto.ErrorResponse;
 import thomas.com.EventPing.security.exception.RateLimitExceededException;
 import thomas.com.EventPing.security.exception.ValidationException;
@@ -39,6 +41,46 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private final AuditLoggingService auditLoggingService;
+
+    /**
+     * Handle UserAlreadyExistsException with HTTP 409 Conflict.
+     */
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(
+            UserAlreadyExistsException ex, HttpServletRequest request) {
+        
+        log.warn("User registration failed: {} - {}", request.getRequestURI(), ex.getMessage());
+        
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.CONFLICT.value())
+            .error("Conflict")
+            .message(ex.getMessage())
+            .path(request.getRequestURI())
+            .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    /**
+     * Handle JWT exceptions with HTTP 401 Unauthorized.
+     */
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ErrorResponse> handleJwtException(
+            JwtException ex, HttpServletRequest request) {
+        
+        log.warn("JWT validation failed: {} - {}", request.getRequestURI(), ex.getMessage());
+        
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.UNAUTHORIZED.value())
+            .error("Unauthorized")
+            .message("Invalid token")
+            .path(request.getRequestURI())
+            .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
 
     /**
      * Handle authentication failures with secure error response and audit logging.

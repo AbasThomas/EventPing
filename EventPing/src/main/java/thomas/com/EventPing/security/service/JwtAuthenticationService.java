@@ -2,6 +2,7 @@ package thomas.com.EventPing.security.service;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,24 @@ public class JwtAuthenticationService {
     
     // In-memory blacklist for demonstration - in production, use Redis
     private final Set<String> blacklistedTokens = ConcurrentHashMap.newKeySet();
+
+    @PostConstruct
+    public void init() {
+        validateJwtConfiguration();
+    }
+
+    private void validateJwtConfiguration() {
+        if (securityProperties.getJwt() == null) {
+            throw new IllegalStateException("JWT configuration is missing");
+        }
+        String secret = securityProperties.getJwt().getSecret();
+        if (secret == null || secret.length() < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 characters long for HMAC-SHA algorithms");
+        }
+        if (securityProperties.getJwt().getExpiration() <= 0) {
+            throw new IllegalStateException("JWT expiration must be positive");
+        }
+    }
 
     /**
      * Generate JWT token with proper claims and expiration

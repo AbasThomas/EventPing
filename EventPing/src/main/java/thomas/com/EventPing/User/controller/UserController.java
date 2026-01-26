@@ -11,6 +11,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import thomas.com.EventPing.User.dtos.UserRequest;
 import thomas.com.EventPing.User.dtos.UserResponseDto;
 import thomas.com.EventPing.User.model.User;
+import thomas.com.EventPing.User.service.UserRegistrationService;
 import thomas.com.EventPing.User.service.UserService;
 import thomas.com.EventPing.security.service.AuthorizationService;
 import thomas.com.EventPing.security.service.AuditLoggingService;
@@ -24,6 +25,7 @@ import java.util.List;
 public class UserController {
     
     private final UserService userService;
+    private final UserRegistrationService userRegistrationService;
     private final AuthorizationService authorizationService;
     private final AuditLoggingService auditLoggingService;
 
@@ -32,18 +34,9 @@ public class UserController {
             @Valid @RequestBody thomas.com.EventPing.User.dtos.RegisterRequest request,
             HttpServletRequest httpRequest) {
         
-        // Log user registration attempt
-        auditLoggingService.logCustomEvent(
-                thomas.com.EventPing.security.entity.AuditEvent.AuditEventType.USER_CREATED,
-                request.getEmail(),
-                "REGISTER",
-                "User",
-                null,
-                null,
-                thomas.com.EventPing.security.entity.AuditEvent.AuditSeverity.LOW
-        );
+        // Audit logging is now handled inside UserRegistrationService
         
-        UserResponseDto response = userService.registerUser(request);
+        UserResponseDto response = userRegistrationService.registerUser(request);
         
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

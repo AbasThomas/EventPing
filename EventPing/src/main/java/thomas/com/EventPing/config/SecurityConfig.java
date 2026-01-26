@@ -14,9 +14,17 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import thomas.com.EventPing.security.filter.JwtAuthenticationFilter;
 import thomas.com.EventPing.security.handler.CustomAccessDeniedHandler;
 import thomas.com.EventPing.security.handler.CustomAuthenticationEntryPoint;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+
+import java.util.Arrays;
 
 /**
  * Spring Security Configuration
@@ -32,14 +40,19 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final SecurityProperties securityProperties;
-    
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-            // CSRF Configuration
+            // CSRF Configuration - disable for API endpoints to prevent conflicts
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/api/auth/**", "/api/participants/events/*/join")
+                .ignoringRequestMatchers("/api/**") // Disable CSRF for all API endpoints
             )
             
             // Session Management - Stateless for JWT
@@ -47,16 +60,20 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             
-            // Authorization Rules
+            // CORS Configuration
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            
+            // Authorization Rules - FIXED ORDER: Public endpoints MUST BE FIRST
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
+                // Public endpoints - MUST BE FIRST to prioritize public access
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/users/register").permitAll() // FIX: Make registration public
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/api/participants/events/*/join").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/events/*").permitAll()
                 
                 // Protected endpoints - require authentication
-                .requestMatchers("/api/users/**").authenticated()
+                .requestMatchers("/api/users/**").authenticated() // Other user endpoints require auth
                 .requestMatchers(HttpMethod.POST, "/api/events").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/events/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/events/**").authenticated()
@@ -67,6 +84,7 @@ public class SecurityConfig {
                 
                 // All other requests require authentication
                 .anyRequest().authenticated()
+                .anyRequest().hasAuthority("Manage_Users")
             )
             
             // JWT Authentication Filter
@@ -97,5 +115,19 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(securityProperties.getPassword().getBcryptRounds());
+    }
+    
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "https://localhost:*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 }

@@ -1,12 +1,9 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useEffect, useState, use } from 'react';
 import { apiFetch } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
-import { useRouter } from 'next/navigation';
-import { PageLayout } from '@/components/layout/PageLayout';
-import { Calendar, Users, MapPin, Clock, ArrowLeft, Share2, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { Calendar, Clock, MapPin, User, ArrowRight, Share2, Copy, Check } from 'lucide-react';
 
 interface Event {
   id: number;
@@ -16,240 +13,157 @@ interface Event {
   status: string;
   slug: string;
   creatorEmail: string;
-  participantCount: number;
-  location?: string;
 }
 
-export default function EventPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
+export default function PublicEventPage({ params }: { params: Promise<{ slug: string }> }) {
   const [event, setEvent] = useState<Event | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [joinEmail, setJoinEmail] = useState('');
-  const [isJoining, setIsJoining] = useState(false);
-  const [joinMessage, setJoinMessage] = useState('');
-  const [joinError, setJoinError] = useState(false);
-  const { user } = useAuth();
-  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [copied, setCopied] = useState(false);
+  
+  // Unwrap params using React.use()
+  const resolvedParams = use(params);
 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const data = await apiFetch(`/events/${slug}`);
-        setEvent(data);
-        if (user) {
-          setJoinEmail(user.email);
-        }
-      } catch (error) {
-        console.error('Failed to fetch event', error);
+        // Public endpoint
+        const data = await apiFetch(`/events/${resolvedParams.slug}`);
+         if (!data || !data.id) {
+             setError(true);
+         } else {
+             setEvent(data);
+         }
+      } catch (err) {
+        console.error('Failed to fetch event', err);
+        setError(true);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
     fetchEvent();
-  }, [slug, user]);
+  }, [resolvedParams.slug]);
 
-  const handleJoin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsJoining(true);
-    setJoinMessage('');
-    setJoinError(false);
-
-    try {
-      await apiFetch(`/participants/events/${slug}/join`, {
-        method: 'POST',
-        body: JSON.stringify({ email: joinEmail }),
-      });
-      setJoinMessage('Successfully joined the event!');
-      setJoinError(false);
-      // Refresh event to update count
-      const data = await apiFetch(`/events/${slug}`);
-      setEvent(data);
-    } catch (err: any) {
-      setJoinMessage(err.message || 'Failed to join event');
-      setJoinError(true);
-    } finally {
-      setIsJoining(false);
-    }
-  };
-
-  const handleShare = () => {
+  const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
-    // Could add a toast notification here
-    alert('Link copied to clipboard!');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  if (isLoading) {
+  if (loading) {
+     return (
+       <div className="flex justify-center items-center min-h-screen">
+         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+       </div>
+     );
+  }
+
+  if (error || !event) {
     return (
-      <PageLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+            <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-6 text-slate-500">
+                <Calendar className="w-8 h-8" />
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2">Event Not Found</h1>
+            <p className="text-slate-400 mb-8">The event you are looking for does not exist or has been removed.</p>
+            <Link href="/" className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-white font-medium transition-colors">
+                Go Home
+            </Link>
         </div>
-      </PageLayout>
     );
   }
 
-  if (!event) {
-    return (
-      <PageLayout>
-        <div className="flex min-h-[60vh] flex-col items-center justify-center text-center px-4">
-          <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
-            <AlertCircle className="h-8 w-8 text-slate-500" />
-          </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Event not found</h1>
-          <p className="text-slate-400 mb-6">The event you are looking for does not exist or has been removed.</p>
-          <Link
-            href="/dashboard"
-            className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
-          </Link>
-        </div>
-      </PageLayout>
-    );
-  }
-
-  const isCreator = user?.email === event.creatorEmail;
   const eventDate = new Date(event.eventDateTime);
 
   return (
-    <PageLayout>
-      <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <Link 
-          href="/dashboard" 
-          className="inline-flex items-center text-slate-400 hover:text-white mb-6 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Link>
-
-        <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-          {/* Header Banner */}
-          <div className="bg-indigo-900/20 border-b border-white/5 p-8 md:p-12 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-            
-            <div className="relative z-10">
-              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
-                <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">{event.title}</h1>
-                {isCreator && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 whitespace-nowrap">
-                    You are the host
-                  </span>
-                )}
-              </div>
-              
-              <div className="flex flex-wrap gap-4 md:gap-8 text-slate-300">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-indigo-400" />
-                  <span>{eventDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+    <div className="container max-w-4xl mx-auto px-4 py-12 md:py-24">
+        <div className="absolute top-6 left-0 w-full px-6 flex justify-between items-center z-20">
+             <Link href="/" className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full border border-indigo-500 flex items-center justify-center shadow-[0_0_10px_rgba(99,102,241,0.5)]">
+                    <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full"></div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-indigo-400" />
-                  <span>{eventDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
-                </div>
-                {event.location && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-indigo-400" />
-                    <span>{event.location}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
-            {/* Main Content */}
-            <div className="md:col-span-2 p-8">
-              <h2 className="text-xl font-semibold text-white mb-4">About this Event</h2>
-              <div className="prose prose-invert max-w-none">
-                <p className="text-slate-300 whitespace-pre-wrap leading-relaxed">
-                  {event.description || "No description provided."}
-                </p>
-              </div>
-
-              <div className="mt-8 pt-8 border-t border-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Users className="h-5 w-5" />
-                  <span><strong className="text-white">{event.participantCount}</strong> people attending</span>
-                </div>
-                <button 
-                  onClick={handleShare}
-                  className="flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
-                >
-                  <Share2 className="h-4 w-4" />
-                  Share Event
-                </button>
-              </div>
-            </div>
-
-            {/* Sidebar / Join Action */}
-            <div className="p-8 bg-slate-950/30">
-              <h3 className="text-lg font-semibold text-white mb-6">Join Event</h3>
-              
-              <form onSubmit={handleJoin} className="space-y-4">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-slate-400 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    required
-                    placeholder="Enter your email"
-                    className="block w-full px-4 py-2.5 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
-                    value={joinEmail}
-                    onChange={(e) => setJoinEmail(e.target.value)}
-                    disabled={!!user || isJoining} 
-                  />
-                  {user && (
-                    <p className="mt-2 text-xs text-slate-500">
-                      You are signed in as {user.fullName}
-                    </p>
-                  )}
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isJoining}
-                  className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-4 rounded-lg transition-all shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] hover:shadow-[0_0_25px_-5px_rgba(99,102,241,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isJoining ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Joining...
-                    </>
-                  ) : (
-                    'RSVP Now'
-                  )}
-                </button>
-              </form>
-
-              {joinMessage && (
-                <div className={`mt-4 p-3 rounded-lg text-sm flex items-start gap-2 ${
-                  joinError 
-                    ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
-                    : 'bg-green-500/10 text-green-400 border border-green-500/20'
-                }`}>
-                  {joinError ? <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /> : <CheckCircle className="h-4 w-4 shrink-0 mt-0.5" />}
-                  <span>{joinMessage}</span>
-                </div>
-              )}
-              
-              <div className="mt-8">
-                <h4 className="text-sm font-medium text-white mb-2">Organizer</h4>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300 font-bold text-xs">
-                    {event.creatorEmail.substring(0, 2).toUpperCase()}
-                  </div>
-                  <div className="text-sm text-slate-400 truncate">
-                    {event.creatorEmail}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                <span className="font-bold tracking-tight text-white">EventPing</span>
+             </Link>
         </div>
-      </div>
-    </PageLayout>
+
+        <div className="glass-panel p-8 md:p-12 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
+             {/* Decorative blob */}
+            <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-indigo-600/20 blur-[100px] rounded-full pointer-events-none"></div>
+
+            <div className="relative z-10">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+                    <div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium uppercase tracking-wider mb-4">
+                            <Calendar className="w-3 h-3" />
+                            Upcoming Event
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+                            {event.title}
+                        </h1>
+                        <div className="flex items-center gap-3 text-slate-400">
+                             <User className="w-4 h-4" />
+                             Hosted by {event.creatorEmail.split('@')[0]}
+                        </div>
+                    </div>
+                    
+                    <button 
+                        onClick={copyLink}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-300 transition-colors"
+                    >
+                        {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
+                        {copied ? 'Copied Link' : 'Share Event'}
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                    <div className="md:col-span-2 space-y-8">
+                        <div>
+                            <h3 className="text-lg font-semibold text-white mb-3">About this event</h3>
+                            <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                {event.description || 'No description provided.'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+                            <div className="flex items-start gap-4">
+                                <div className="p-3 rounded-xl bg-indigo-500/20 text-indigo-400">
+                                    <Calendar className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <div className="text-sm text-slate-400 mb-1">Date</div>
+                                    <div className="text-white font-semibold">
+                                        {eventDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-start gap-4">
+                                <div className="p-3 rounded-xl bg-cyan-500/20 text-cyan-400">
+                                    <Clock className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <div className="text-sm text-slate-400 mb-1">Time</div>
+                                    <div className="text-white font-semibold">
+                                        {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                         <Link 
+                            href={`/events/${event.slug}/join`}
+                            className="w-full block text-center py-4 bg-white text-slate-900 font-bold rounded-xl hover:bg-slate-200 transition-colors shadow-lg shadow-white/10"
+                         >
+                            I'm Attending
+                            <ArrowRight className="w-4 h-4 inline-block ml-2" />
+                         </Link>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
   );
 }

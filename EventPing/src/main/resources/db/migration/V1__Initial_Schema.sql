@@ -7,8 +7,15 @@
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(255),
     phone_number VARCHAR(255),
+    role VARCHAR(50) NOT NULL DEFAULT 'USER',
+    account_locked BOOLEAN NOT NULL DEFAULT false,
+    failed_login_attempts INTEGER NOT NULL DEFAULT 0,
+    last_login_at TIMESTAMP,
+    reset_token VARCHAR(255),
+    reset_token_expiry TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -80,8 +87,35 @@ CREATE TABLE reminders (
 
 CREATE INDEX idx_reminders_event_id ON reminders(event_id);
 CREATE INDEX idx_reminders_participant_id ON reminders(participant_id);
--- CRITICAL INDEX for cron job performance
 CREATE INDEX idx_reminders_send_at_sent ON reminders(send_at, sent) WHERE sent = false;
+
+-- =====================================================
+-- Create Audit Events Table
+-- =====================================================
+CREATE TABLE audit_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_type VARCHAR(50) NOT NULL,
+    username VARCHAR(255),
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(500),
+    request_uri VARCHAR(500),
+    request_method VARCHAR(10),
+    session_id VARCHAR(255),
+    resource_type VARCHAR(100),
+    resource_id VARCHAR(100),
+    action VARCHAR(100),
+    result VARCHAR(50),
+    error_message VARCHAR(1000),
+    details TEXT,
+    severity VARCHAR(20) NOT NULL,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    correlation_id VARCHAR(100),
+    tenant_id VARCHAR(100)
+);
+
+CREATE INDEX idx_audit_event_type ON audit_events(event_type);
+CREATE INDEX idx_audit_username ON audit_events(username);
+CREATE INDEX idx_audit_timestamp ON audit_events(timestamp);
 
 -- =====================================================
 -- Seed Initial Data
@@ -94,11 +128,3 @@ VALUES ('FREE', 3, 50, 'EMAIL', 0.00);
 -- Insert PRO plan
 INSERT INTO plans (name, max_events_per_day, max_participants_per_event, reminder_channels, price)
 VALUES ('PRO', 999, 500, 'EMAIL,WHATSAPP', 9.99);
-
--- =====================================================
--- Verification Comments
--- =====================================================
--- Run these queries after migration to verify:
--- SELECT * FROM plans; -- Should return 2 rows
--- \dt -- Should show 5 tables
--- \di -- Should show all indexes

@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
-import { Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, Loader2, ArrowRight, Phone } from 'lucide-react';
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +24,7 @@ export default function RegisterPage() {
       // First register
       await apiFetch('/users/register', {
         method: 'POST',
-        body: JSON.stringify({ fullName, email, password, role: 'USER' }),
+        body: JSON.stringify({ fullName, email, phoneNumber, password }),
       });
 
       // Then auto-login
@@ -91,6 +92,25 @@ export default function RegisterPage() {
               required
               className="block w-full pl-10 pr-3 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
               placeholder="you@example.com"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-slate-300 ml-1">Phone Number</label>
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+              <Phone className="h-5 w-5" />
+            </div>
+            <input
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              required
+              pattern="^\+?[1-9]\d{1,14}$"
+              title="Please enter a valid phone number (e.g., +1234567890)"
+              className="block w-full pl-10 pr-3 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+              placeholder="+1234567890"
             />
           </div>
         </div>

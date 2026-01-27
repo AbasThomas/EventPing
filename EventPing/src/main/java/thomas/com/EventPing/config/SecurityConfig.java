@@ -84,7 +84,6 @@ public class SecurityConfig {
                 
                 // All other requests require authentication
                 .anyRequest().authenticated()
-                .anyRequest().hasAuthority("Manage_Users")
             )
             
             // JWT Authentication Filter

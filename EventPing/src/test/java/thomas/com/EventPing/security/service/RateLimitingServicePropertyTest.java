@@ -27,6 +27,7 @@ class RateLimitingServicePropertyTest {
     private RateLimitingService rateLimitingService;
     private InMemoryRateLimitRepository inMemoryRepository;
     private RateLimitProperties rateLimitProperties;
+    private AuditLoggingService auditLoggingService;
 
     @BeforeProperty
     void setUp() {
@@ -64,7 +65,8 @@ class RateLimitingServicePropertyTest {
         inMemoryRepository = new InMemoryRateLimitRepository();
         
         // Create service with fresh in-memory repository
-        rateLimitingService = new RateLimitingService(inMemoryRepository, rateLimitProperties);
+        auditLoggingService = Mockito.mock(AuditLoggingService.class);
+        rateLimitingService = new RateLimitingService(inMemoryRepository, rateLimitProperties, auditLoggingService);
     }
 
     /**
@@ -115,7 +117,7 @@ class RateLimitingServicePropertyTest {
         
         // Create fresh service for this test iteration
         InMemoryRateLimitRepository freshRepository = new InMemoryRateLimitRepository();
-        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties);
+        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties, auditLoggingService);
         
         int maxRequests = rateLimitProperties.getIp().getRequestsPerMinute();
         
@@ -160,7 +162,7 @@ class RateLimitingServicePropertyTest {
         
         // Create fresh service for this test iteration
         InMemoryRateLimitRepository freshRepository = new InMemoryRateLimitRepository();
-        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties);
+        RateLimitingService freshService = new RateLimitingService(freshRepository, rateLimitProperties, auditLoggingService);
         
         // Create a blocked tracking record
         RateLimitTracking blockedRecord = RateLimitTracking.builder()

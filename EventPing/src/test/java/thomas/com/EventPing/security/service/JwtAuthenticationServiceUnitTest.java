@@ -186,7 +186,7 @@ class JwtAuthenticationServiceUnitTest {
         jwt.setAudience("EventPing-Users");
         shortExpirationProps.setJwt(jwt);
         
-        JwtAuthenticationService shortExpirationService = new JwtAuthenticationService(shortExpirationProps);
+        JwtAuthenticationService shortExpirationService = new JwtAuthenticationService(shortExpirationProps, auditLoggingService);
         JwtToken jwtToken = shortExpirationService.generateToken(user);
 
         // Wait for token to expire

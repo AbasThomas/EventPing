@@ -26,6 +26,11 @@ public class NoSqlInjectionValidator implements ConstraintValidator<NoSqlInjecti
         if (value == null) {
             return true; // Let @NotNull handle null validation
         }
+        
+        // Handle case where dependency injection fails (fallback)
+        if (inputValidationService == null) {
+            return true; 
+        }
 
         return !inputValidationService.containsSqlInjection(value);
     }

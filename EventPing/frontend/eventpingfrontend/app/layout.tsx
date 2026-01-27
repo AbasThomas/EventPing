@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 
 import { ScrollReveal } from "@/components/landing/ScrollReveal";
 import { AuthProvider } from "@/lib/auth-context";
+import { BackgroundLayer } from "@/components/shared/BackgroundLayer";
 
 export default function RootLayout({
   children,
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body className={`${inter.variable} antialiased font-sans`}>
         <AuthProvider>
           <ScrollReveal />
+          <BackgroundLayer />
           {children}
         </AuthProvider>
       </body>

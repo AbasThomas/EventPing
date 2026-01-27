@@ -1,0 +1,70 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
+import { LogOut, Calendar, Home, User, Settings } from 'lucide-react';
+
+export function DashboardNavbar() {
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
+
+  const isActive = (path: string) => pathname === path || pathname?.startsWith(path + '/');
+
+  return (
+    <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full border border-indigo-500 flex items-center justify-center shadow-[0_0_10px_rgba(99,102,241,0.5)]">
+              <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full"></div>
+            </div>
+            <span className="font-bold tracking-tight text-white hidden md:block">EventPing</span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-1">
+            <Link
+              href="/dashboard"
+              className={`px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                pathname === '/dashboard' 
+                  ? 'bg-white/10 text-white' 
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Home className="w-4 h-4" />
+              Overview
+            </Link>
+            <Link
+              href="/dashboard/events"
+              className={`px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                isActive('/dashboard/events')
+                  ? 'bg-white/10 text-white' 
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Calendar className="w-4 h-4" />
+              Events
+            </Link>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+            <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+               <User className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-sm text-slate-300 pr-1">{user?.fullName || 'User'}</span>
+          </div>
+          
+          <button 
+            onClick={logout}
+            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+            title="Sign out"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    </nav>
+  );
+}

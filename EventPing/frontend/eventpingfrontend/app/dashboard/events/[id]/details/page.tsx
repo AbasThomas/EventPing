@@ -4,7 +4,7 @@ import { useEffect, useState, use } from 'react';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, ArrowLeft, Users, Edit, Trash2, Link as LinkIcon, Share2, Circle, AlertTriangle, Loader2 } from 'lucide-react';
+import { Calendar, Clock, ArrowLeft, ArrowRight, Users, Edit, Trash2, Link as LinkIcon, Share2, Circle, AlertTriangle, Loader2 } from 'lucide-react';
 
 interface Event {
   id: number;

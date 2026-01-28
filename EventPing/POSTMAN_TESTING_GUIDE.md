@@ -26,13 +26,14 @@ Make sure EventPing is running on `http://localhost:8080`
 
 ---
 
-### Step 2: Create a User 👤
-**POST** `http://localhost:8080/api/users`
+### Step 2: Register a User 👤
+**POST** `http://localhost:8080/api/users/register`
 
 **Body:**
 ```json
 {
   "email": "john.doe@example.com",
+  "password": "password123",
   "fullName": "John Doe",
   "phoneNumber": "+1234567890"
 }
@@ -43,23 +44,51 @@ Make sure EventPing is running on `http://localhost:8080`
 {
   "id": 1,
   "email": "john.doe@example.com",
-  "fullName": "John Doe"
+  "fullName": "John Doe",
+  "phoneNumber": "+1234567890",
+  "role": "USER"
 }
 ```
 
-**💾 Save:** Copy the `id` value (you'll need it for creating events)
+---
+
+### Step 3: Login to get JWT 🔑
+**POST** `http://localhost:8080/api/auth/login`
+
+**Body:**
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+```
+
+**Expected Response:**
+```json
+{
+  "token": {
+    "accessToken": "eyJhbGciOiJIUzM4NCJ9...",
+    "refreshToken": "...",
+    "expiresIn": 86400000
+  },
+  "user": { ... }
+}
+```
+
+**💾 Save:** Copy the `accessToken`. In Postman, go to the **Auth** tab for the next requests and select **Bearer Token**, then paste this value.
 
 ---
 
-### Step 3: Create an Event 📅
-**POST** `http://localhost:8080/api/events?userId=1`
+### Step 4: Create an Event 📅
+**POST** `http://localhost:8080/api/events`
+**Header:** `Authorization: Bearer {accessToken}`
 
 **Body:**
 ```json
 {
   "title": "Team Weekly Standup",
   "description": "Weekly sync meeting to discuss progress and blockers",
-  "eventDateTime": "2026-01-25T10:00:00",
+  "eventDateTime": "2027-01-25T10:00:00",
   "reminderOffsetMinutes": [60, 1440]
 }
 ```
@@ -70,30 +99,26 @@ Make sure EventPing is running on `http://localhost:8080`
   "id": 1,
   "title": "Team Weekly Standup",
   "description": "Weekly sync meeting to discuss progress and blockers",
-  "eventDateTime": "2026-01-25T10:00:00",
+  "eventDateTime": "2027-01-25T10:00:00",
   "status": "ACTIVE",
   "slug": "a1b2c3d4",
   "creatorId": 1,
   "creatorEmail": "john.doe@example.com",
   "participantCount": 0,
-  "createdAt": "2026-01-23T06:00:00"
+  "createdAt": "2026-01-28T06:00:00"
 }
 ```
 
-**💾 Save:** Copy the `slug` value (e.g., "a1b2c3d4")
-
----
-
-### Step 4: Get Event by Slug 🔍
+### Step 5: Get Event by Slug 🔍
 **GET** `http://localhost:8080/api/events/{slug}`
 
-Replace `{slug}` with the value from Step 3
+Replace `{slug}` with the value from Step 4 (e.g., `a1b2c3d4`)
 
-**Expected:** Same response as Step 3
+**Expected:** Same response as Step 4
 
 ---
 
-### Step 5: Join Event as Participant 🙋‍♀️
+### Step 6: Join Event as Participant 🙋‍♀️
 **POST** `http://localhost:8080/api/participants/events/{slug}/join?reminderOffsetMinutes=60,1440`
 
 **Body:**
@@ -109,7 +134,7 @@ Replace `{slug}` with the value from Step 3
   "id": 1,
   "eventId": 1,
   "email": "alice@example.com",
-  "joinedAt": "2026-01-23T06:05:00",
+  "joinedAt": "2026-01-28T06:05:00",
   "unsubscribed": false
 }
 ```
@@ -118,15 +143,16 @@ Replace `{slug}` with the value from Step 3
 
 ---
 
-### Step 6: Add More Participants
-Repeat Step 5 with different emails:
+### Step 7: Add More Participants
+Repeat Step 6 with different emails:
 - `bob@example.com`
 - `charlie@example.com`
 
 ---
 
-### Step 7: Get Event Participants 👥
+### Step 8: Get Event Participants 👥
 **GET** `http://localhost:8080/api/participants/events/{slug}`
+**Header:** `Authorization: Bearer {accessToken}`
 
 **Expected Response:**
 ```json
@@ -150,8 +176,10 @@ Repeat Step 5 with different emails:
 
 ---
 
-### Step 8: Unsubscribe Participant ❌
+### Step 9: Unsubscribe Participant ❌
 **POST** `http://localhost:8080/api/participants/{participantId}/unsubscribe`
+
+Replace `{participantId}` with ID from Step 6
 
 Replace `{participantId}` with ID from Step 5
 
@@ -199,7 +227,7 @@ For 1 event with 2 participants and 2 reminder offsets (60min + 1440min):
 {
   "title": "Frontend Study Group",
   "description": "Learn React hooks together",
-  "eventDateTime": "2026-01-26T19:00:00",
+  "eventDateTime": "2027-01-26T19:00:00",
   "reminderOffsetMinutes": [30, 180, 1440]
 }
 ```
@@ -209,7 +237,7 @@ For 1 event with 2 participants and 2 reminder offsets (60min + 1440min):
 {
   "title": "Sarah's 30th Birthday",
   "description": "Surprise party at The Garden. Bring gifts!",
-  "eventDateTime": "2026-01-28T18:00:00",
+  "eventDateTime": "2027-01-28T18:00:00",
   "reminderOffsetMinutes": [120, 2880]
 }
 ```
@@ -219,7 +247,7 @@ For 1 event with 2 participants and 2 reminder offsets (60min + 1440min):
 {
   "title": "Project Submission Deadline",
   "description": "Final presentation materials due",
-  "eventDateTime": "2026-01-30T23:59:00",
+  "eventDateTime": "2027-01-30T23:59:00",
   "reminderOffsetMinutes": [60, 360, 1440]
 }
 ```
@@ -278,7 +306,7 @@ Try joining same event twice with same email:
 
 ### Verify Email Sending
 
-1. **Create event** with near-future date
+1. **Create event** with near-future date (e.g., 5 minutes from now)
 2. **Join as participant** with your real email
 3. **Set reminder** for 2 minutes: `reminderOffsetMinutes: [2]`
 4. **Wait 2 minutes**
@@ -288,7 +316,7 @@ Try joining same event twice with same email:
 ```json
 {
   "title": "Email Test Event",
-  "eventDateTime": "2026-01-23T07:05:00",
+  "eventDateTime": "2027-01-23T07:05:00",
   "reminderOffsetMinutes": [2]
 }
 ```

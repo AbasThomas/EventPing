@@ -70,6 +70,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/register").permitAll() // FIX: Make registration public
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/api/participants/events/*/join").permitAll()
+                .requestMatchers("/api/participants/*/unsubscribe").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/events/*").permitAll()
                 
                 // Protected endpoints - require authentication

@@ -9,4 +9,6 @@ public interface ParticipantService {
     ParticipantResponseDto joinEvent(String eventSlug, JoinEventRequest request, List<Long> reminderOffsetMinutes);
     void unsubscribe(Long participantId);
     List<ParticipantResponseDto> getEventParticipants(String eventSlug);
+    void updateRsvp(Long participantId, thomas.com.EventPing.participant.model.Participant.RsvpStatus status);
+    java.util.Map<thomas.com.EventPing.participant.model.Participant.RsvpStatus, Long> getRsvpSummary(String eventSlug);
 }

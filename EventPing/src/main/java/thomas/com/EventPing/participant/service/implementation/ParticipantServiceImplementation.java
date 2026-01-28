@@ -3,6 +3,7 @@ package thomas.com.EventPing.participant.service.implementation;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import thomas.com.EventPing.User.model.User;
 import thomas.com.EventPing.common.service.RateLimitService;
 import thomas.com.EventPing.event.model.Event;
 import thomas.com.EventPing.event.repository.EventRepository;
@@ -58,17 +59,37 @@ public class ParticipantServiceImplementation implements ParticipantService {
 
         Participant savedParticipant = participantRepository.save(participant);
 
-        // Create reminders
-        if (reminderOffsetMinutes != null && !reminderOffsetMinutes.isEmpty()) {
-            for (Long offsetMinutes : reminderOffsetMinutes) {
-                Reminder reminder = new Reminder();
-                reminder.setEvent(event);
-                reminder.setParticipant(savedParticipant);
-                reminder.setSendAt(event.getEventDateTime().minusMinutes(offsetMinutes));
-                reminder.setChannel(Reminder.ReminderChannel.EMAIL);
-                reminder.setSent(false);
-                
-                reminderRepository.save(reminder);
+        // Get creator's plan for feature validation
+        thomas.com.EventPing.plan.model.Plan plan = event.getCreator().getPlan();
+
+        // Validate reminder intervals - only allowed if plan supports custom intervals
+        List<Long> finalOffsets = reminderOffsetMinutes;
+        if (finalOffsets != null && !finalOffsets.isEmpty() && (plan == null || !plan.isCustomIntervalsEnabled())) {
+            // Force default offsets for FREE users (or if plan missing) if they try to customize
+            finalOffsets = List.of(60L, 1440L);
+        }
+
+        // Create reminders for allowed channels
+        if (finalOffsets != null && !finalOffsets.isEmpty()) {
+            String[] allowedChannels = (plan != null ? plan.getReminderChannels() : "EMAIL").split(",");
+            
+            for (String channelStr : allowedChannels) {
+                try {
+                    Reminder.ReminderChannel channel = Reminder.ReminderChannel.valueOf(channelStr.trim());
+                    
+                    for (Long offsetMinutes : finalOffsets) {
+                        Reminder reminder = new Reminder();
+                        reminder.setEvent(event);
+                        reminder.setParticipant(savedParticipant);
+                        reminder.setSendAt(event.getEventDateTime().minusMinutes(offsetMinutes));
+                        reminder.setChannel(channel);
+                        reminder.setSent(false);
+                        
+                        reminderRepository.save(reminder);
+                    }
+                } catch (IllegalArgumentException e) {
+                    // Log or ignore invalid channels in plan config
+                }
             }
         }
 
@@ -92,5 +113,23 @@ public class ParticipantServiceImplementation implements ParticipantService {
         return participantRepository.findByEvent(event).stream()
                 .map(participantMapper::toParticipantResponseDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void updateRsvp(Long participantId, Participant.RsvpStatus status) {
+        Participant participant = participantRepository.findById(participantId)
+                .orElseThrow(() -> new RuntimeException("Participant not found"));
+        participant.setRsvpStatus(status);
+        participantRepository.save(participant);
+    }
+
+    @Override
+    public java.util.Map<Participant.RsvpStatus, Long> getRsvpSummary(String eventSlug) {
+        Event event = eventRepository.findBySlug(eventSlug)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+        
+        List<Participant> participants = participantRepository.findByEvent(event);
+        return participants.stream()
+                .collect(Collectors.groupingBy(Participant::getRsvpStatus, Collectors.counting()));
     }
 }

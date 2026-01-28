@@ -44,6 +44,8 @@ public class Reminder {
 
     public enum ReminderChannel {
         EMAIL,
-        WHATSAPP
+        WHATSAPP,
+        TELEGRAM,
+        DISCORD
     }
 }

@@ -19,5 +19,8 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "events", ignore = true)
+    @Mapping(target = "resetToken", ignore = true)
+    @Mapping(target = "resetTokenExpiry", ignore = true)
+    @Mapping(target = "plan", ignore = true)
     User toUser(UserRequest userRequest);
 }

@@ -43,6 +43,16 @@ public class Participant {
     @Column(nullable = false)
     private Boolean unsubscribed = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rsvp_status", nullable = false)
+    private RsvpStatus rsvpStatus = RsvpStatus.TENTATIVE;
+
     @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<thomas.com.EventPing.reminder.model.Reminder> reminders = new ArrayList<>();
+
+    public enum RsvpStatus {
+        ATTENDING,
+        NOT_ATTENDING,
+        TENTATIVE
+    }
 }

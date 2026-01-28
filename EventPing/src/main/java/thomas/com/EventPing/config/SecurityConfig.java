@@ -71,6 +71,7 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/api/participants/events/*/join").permitAll()
                 .requestMatchers("/api/participants/*/unsubscribe").permitAll()
+                .requestMatchers("/api/participants/*/rsvp").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/events/*").permitAll()
                 
                 // Protected endpoints - require authentication

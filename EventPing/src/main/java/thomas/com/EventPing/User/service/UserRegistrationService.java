@@ -23,6 +23,7 @@ public class UserRegistrationService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final AuditLoggingService auditLoggingService;
+    private final thomas.com.EventPing.plan.repository.PlanRepository planRepository;
 
     @Transactional
     public UserResponseDto registerUser(RegisterRequest request) {
@@ -41,6 +42,11 @@ public class UserRegistrationService {
             user.setPhoneNumber(request.getPhoneNumber());
             user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
             user.setRole(User.UserRole.USER);
+            
+            // Assign default FREE plan
+            thomas.com.EventPing.plan.model.Plan freePlan = planRepository.findByName(thomas.com.EventPing.plan.model.Plan.PlanName.FREE)
+                    .orElseThrow(() -> new RuntimeException("Default FREE plan not found"));
+            user.setPlan(freePlan);
             
             // Set defaults
             user.setAccountLocked(false);

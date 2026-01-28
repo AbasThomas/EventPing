@@ -72,6 +72,10 @@ public class User {
     @Column(name = "reset_token_expiry")
     private LocalDateTime resetTokenExpiry;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "plan_id")
+    private thomas.com.EventPing.plan.model.Plan plan;
+
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<thomas.com.EventPing.event.model.Event> events = new java.util.ArrayList<>();
 

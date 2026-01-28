@@ -19,9 +19,12 @@ public class RateLimitService {
     private final PlanRepository planRepository;
 
     public boolean canCreateEvent(User user) {
-        // Get user's plan (default to FREE if not set)
-        Plan plan = planRepository.findByName(Plan.PlanName.FREE)
-                .orElseThrow(() -> new RuntimeException("FREE plan not found"));
+        // Get user's plan
+        Plan plan = user.getPlan();
+        if (plan == null) {
+            plan = planRepository.findByName(Plan.PlanName.FREE)
+                    .orElseThrow(() -> new RuntimeException("FREE plan not found"));
+        }
 
         // Count events created today
         LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
@@ -31,12 +34,29 @@ public class RateLimitService {
     }
 
     public boolean canAddParticipant(Event event) {
-        // Get FREE plan limits (for now all events use FREE plan limits)
-        Plan plan = planRepository.findByName(Plan.PlanName.FREE)
-                .orElseThrow(() -> new RuntimeException("FREE plan not found"));
+        // Get event creator's plan
+        User creator = event.getCreator();
+        Plan plan = creator.getPlan();
+        if (plan == null) {
+            plan = planRepository.findByName(Plan.PlanName.FREE)
+                    .orElseThrow(() -> new RuntimeException("FREE plan not found"));
+        }
 
         long currentParticipants = participantRepository.countByEvent(event);
 
         return currentParticipants < plan.getMaxParticipantsPerEvent();
+    }
+
+    public boolean canAddTeamMember(User owner) {
+        Plan plan = owner.getPlan();
+        if (plan == null) {
+            plan = planRepository.findByName(Plan.PlanName.FREE)
+                    .orElseThrow(() -> new RuntimeException("FREE plan not found"));
+        }
+
+        // We need a repository for team members, but for now let's assume one
+        // Long currentTeamMembers = teamMemberRepository.countByOwner(owner);
+        // return currentTeamMembers < plan.getMaxTeamMembers();
+        return plan.getMaxTeamMembers() > 0; // Simplified for now
     }
 }

@@ -120,6 +120,21 @@ public class ParticipantController {
         return ResponseEntity.ok(participants);
     }
 
+    @PostMapping("/{id}/rsvp")
+    public ResponseEntity<Void> updateRsvp(
+            @PathVariable Long id,
+            @RequestParam thomas.com.EventPing.participant.model.Participant.RsvpStatus status) {
+        participantService.updateRsvp(id, status);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/events/{slug}/rsvp-summary")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<java.util.Map<thomas.com.EventPing.participant.model.Participant.RsvpStatus, Long>> getRsvpSummary(@PathVariable String slug) {
+        // This could be restricted by plan, but for now we expose it
+        return ResponseEntity.ok(participantService.getRsvpSummary(slug));
+    }
+
     /**
      * Get client IP address from request
      */

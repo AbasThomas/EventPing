@@ -30,13 +30,37 @@ public class Plan {
     private Integer maxParticipantsPerEvent;
 
     @Column(name = "reminder_channels", nullable = false)
-    private String reminderChannels; // Comma-separated: EMAIL,WHATSAPP
+    private String reminderChannels; // Comma-separated: EMAIL,WHATSAPP,TELEGRAM,DISCORD
 
     @Column(nullable = false)
     private BigDecimal price;
 
+    @Column(name = "has_custom_intervals", nullable = false)
+    private boolean customIntervalsEnabled = false;
+
+    @Column(name = "has_analytics", nullable = false)
+    private boolean analyticsEnabled = false;
+
+    @Column(name = "has_custom_branding", nullable = false)
+    private boolean customBrandingEnabled = false;
+
+    @Column(name = "has_custom_templates", nullable = false)
+    private boolean customTemplatesEnabled = false;
+
+    @Column(name = "has_advanced_rsvp", nullable = false)
+    private boolean advancedRsvpEnabled = false;
+
+    @Column(name = "has_api_access", nullable = false)
+    private boolean apiAccessEnabled = false;
+
+    @Column(name = "max_team_members", nullable = false)
+    private Integer maxTeamMembers = 0;
+
     public enum PlanName {
         FREE,
-        PRO
+        BASIC,
+        PRO,
+        BUSINESS,
+        ENTERPRISE
     }
 }

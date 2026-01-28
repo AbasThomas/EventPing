@@ -18,5 +18,6 @@ public class PlanResponseDto {
     private Integer maxEventsPerDay;
     private Integer maxParticipantsPerEvent;
     private String reminderChannels;
-    private BigDecimal price;
+    private Integer monthlyCreditLimit;
+    private boolean enterprise;
 }

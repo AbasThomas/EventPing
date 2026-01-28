@@ -26,6 +26,11 @@ public class RateLimitService {
                     .orElseThrow(() -> new RuntimeException("FREE plan not found"));
         }
 
+        // Unlimited if maxEventsPerDay is null
+        if (plan.getMaxEventsPerDay() == null) {
+            return true;
+        }
+
         // Count events created today
         LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
         long eventsToday = eventRepository.countByCreatorAndCreatedAtAfter(user, startOfDay);
@@ -40,6 +45,11 @@ public class RateLimitService {
         if (plan == null) {
             plan = planRepository.findByName(Plan.PlanName.FREE)
                     .orElseThrow(() -> new RuntimeException("FREE plan not found"));
+        }
+
+        // Unlimited if maxParticipantsPerEvent is null
+        if (plan.getMaxParticipantsPerEvent() == null) {
+            return true;
         }
 
         long currentParticipants = participantRepository.countByEvent(event);
@@ -58,5 +68,17 @@ public class RateLimitService {
         // Long currentTeamMembers = teamMemberRepository.countByOwner(owner);
         // return currentTeamMembers < plan.getMaxTeamMembers();
         return plan.getMaxTeamMembers() > 0; // Simplified for now
+    }
+
+    public boolean hasCredits(User user) {
+        Plan plan = user.getPlan();
+        if (plan == null) return false;
+        
+        // Unlimited credits if monthlyCreditLimit is null
+        if (plan.getMonthlyCreditLimit() == null) {
+            return true;
+        }
+
+        return user.getMonthlyCreditsUsed() < plan.getMonthlyCreditLimit();
     }
 }

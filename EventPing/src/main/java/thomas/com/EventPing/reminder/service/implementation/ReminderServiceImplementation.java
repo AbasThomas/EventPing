@@ -10,6 +10,10 @@ import thomas.com.EventPing.reminder.model.Reminder;
 import thomas.com.EventPing.reminder.repository.ReminderRepository;
 import thomas.com.EventPing.reminder.service.ReminderService;
 
+import thomas.com.EventPing.User.model.User;
+import thomas.com.EventPing.User.repository.UserRepository;
+import thomas.com.EventPing.common.service.RateLimitService;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -21,6 +25,8 @@ import java.util.List;
 public class ReminderServiceImplementation implements ReminderService {
     private final ReminderRepository reminderRepository;
     private final JavaMailSender mailSender;
+    private final RateLimitService rateLimitService;
+    private final UserRepository userRepository;
 
     @Override
     public void sendDueReminders() {
@@ -30,6 +36,14 @@ public class ReminderServiceImplementation implements ReminderService {
         
         for (Reminder reminder : dueReminders) {
             try {
+                // Check if creator has credits
+                User creator = reminder.getEvent().getCreator();
+                if (!rateLimitService.hasCredits(creator)) {
+                    log.warn("Skipping reminder {} - creator {} has exhausted monthly credits", 
+                        reminder.getId(), creator.getEmail());
+                    continue; // Skip this reminder for now
+                }
+
                 // Skip if participant unsubscribed
                 if (reminder.getParticipant().getUnsubscribed()) {
                     log.info("Skipping reminder {} - participant unsubscribed", reminder.getId());
@@ -41,9 +55,12 @@ public class ReminderServiceImplementation implements ReminderService {
                 // Send email
                 sendEmail(reminder);
                 
-                // Mark as sent
+                // Mark as sent and increment user credits
                 reminder.setSent(true);
                 reminder.setSentAt(LocalDateTime.now());
+                
+                creator.setMonthlyCreditsUsed(creator.getMonthlyCreditsUsed() + 1);
+                userRepository.save(creator);
                 
                 log.info("Sent reminder {} to {}", reminder.getId(), reminder.getParticipant().getEmail());
             } catch (Exception e) {

@@ -25,23 +25,24 @@ public class DataInitializer implements CommandLineRunner {
         if (planRepository.count() == 0) {
             log.info("Seeding initial plans...");
             
-            Plan freePlan = new Plan();
-            freePlan.setName(Plan.PlanName.FREE);
-            freePlan.setMaxEventsPerDay(3);
-            freePlan.setMaxParticipantsPerEvent(50);
-            freePlan.setReminderChannels("EMAIL");
-            freePlan.setPrice(BigDecimal.ZERO);
-            planRepository.save(freePlan);
-
-            Plan proPlan = new Plan();
-            proPlan.setName(Plan.PlanName.PRO);
-            proPlan.setMaxEventsPerDay(999);
-            proPlan.setMaxParticipantsPerEvent(500);
-            proPlan.setReminderChannels("EMAIL,WHATSAPP");
-            proPlan.setPrice(new BigDecimal("9.99"));
-            planRepository.save(proPlan);
+            savePlan(Plan.PlanName.FREE, 3, 20, "EMAIL", false, 100);
+            savePlan(Plan.PlanName.BASIC, 10, 100, "EMAIL,TELEGRAM", false, 1000);
+            savePlan(Plan.PlanName.PRO, 50, 500, "EMAIL,TELEGRAM,WHATSAPP", false, 5000);
+            savePlan(Plan.PlanName.BUSINESS, null, 2000, "EMAIL,TELEGRAM,WHATSAPP,DISCORD", false, 25000);
+            savePlan(Plan.PlanName.ENTERPRISE, null, null, "EMAIL,TELEGRAM,WHATSAPP,DISCORD", true, null);
             
             log.info("Initial plans seeded successfully.");
         }
+    }
+
+    private void savePlan(Plan.PlanName name, Integer maxEvents, Integer maxParticipants, String channels, boolean enterprise, Integer credits) {
+        Plan plan = new Plan();
+        plan.setName(name);
+        plan.setMaxEventsPerDay(maxEvents);
+        plan.setMaxParticipantsPerEvent(maxParticipants);
+        plan.setReminderChannels(channels);
+        plan.setEnterprise(enterprise);
+        plan.setMonthlyCreditLimit(credits);
+        planRepository.save(plan);
     }
 }

@@ -76,6 +76,12 @@ public class User {
     @JoinColumn(name = "plan_id")
     private thomas.com.EventPing.plan.model.Plan plan;
 
+    @Column(name = "monthly_credits_used", nullable = false)
+    private Integer monthlyCreditsUsed = 0;
+
+    @Column(name = "last_usage_reset_at")
+    private LocalDateTime lastUsageResetAt = LocalDateTime.now();
+
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<thomas.com.EventPing.event.model.Event> events = new java.util.ArrayList<>();
 

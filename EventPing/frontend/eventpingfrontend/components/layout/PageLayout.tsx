@@ -12,10 +12,8 @@ interface PageLayoutProps {
 
 export function PageLayout({ children, showNavbar = true, showFooter = true }: PageLayoutProps) {
   return (
-    <main className="min-h-screen relative overflow-hidden bg-slate-950 text-slate-200 antialiased selection:bg-indigo-500/30 selection:text-indigo-200 fade-in-page">
+    <main className="min-h-screen relative text-slate-200 antialiased selection:bg-indigo-500/30 selection:text-indigo-200 fade-in-page">
       {showNavbar && <Navbar />}
-      
-      <PageBackground />
 
       <div className="relative z-10 pt-20 min-h-[calc(100vh-80px)]">
         {children}

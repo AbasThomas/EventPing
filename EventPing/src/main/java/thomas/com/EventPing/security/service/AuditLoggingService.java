@@ -354,13 +354,27 @@ public class AuditLoggingService {
                     event.setIpAddress(getClientIpAddress(request));
                 }
                 
-                event.setUserAgent(request.getHeader("User-Agent"));
-                event.setRequestUri(request.getRequestURI());
+                String userAgent = request.getHeader("User-Agent");
+                if (userAgent != null && userAgent.length() > 1024) {
+                    userAgent = userAgent.substring(0, 1021) + "...";
+                }
+                event.setUserAgent(userAgent);
+
+                String requestUri = request.getRequestURI();
+                if (requestUri != null && requestUri.length() > 1024) {
+                    requestUri = requestUri.substring(0, 1021) + "...";
+                }
+                event.setRequestUri(requestUri);
+
                 event.setRequestMethod(request.getMethod());
                 
                 // Get session ID if available
                 if (request.getSession(false) != null) {
-                    event.setSessionId(request.getSession().getId());
+                    String sessionId = request.getSession().getId();
+                    if (sessionId != null && sessionId.length() > 255) {
+                        sessionId = sessionId.substring(0, 252) + "...";
+                    }
+                    event.setSessionId(sessionId);
                 }
             }
             

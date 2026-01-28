@@ -24,8 +24,8 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (data.data && data.data.token) {
-        login(data.data.token, data.data.user);
+      if (data.token && data.token.accessToken) {
+        login(data.token.accessToken, data.user);
       } else {
         setError('Invalid response from server');
       }

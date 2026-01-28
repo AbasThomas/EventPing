@@ -85,9 +85,12 @@ export function Footer() {
             <h4 className="text-sm font-semibold text-white mb-4">Resources</h4>
             <ul className="space-y-3 text-sm font-light text-slate-400">
               <li>
-                <a href="#" className="hover:text-indigo-400 transition-colors">
+                <Link
+                  href="/docs"
+                  className="hover:text-indigo-400 transition-colors"
+                >
                   Docs
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-indigo-400 transition-colors">

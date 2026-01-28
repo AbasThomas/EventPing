@@ -70,6 +70,7 @@ public class JwtAuthenticationService {
             claims.put("userId", user.getId());
             claims.put("email", user.getEmail());
             claims.put("fullName", user.getFullName());
+            claims.put("role", user.getRole().name());
             claims.put("type", "access");
 
             // Generate access token
@@ -83,10 +84,10 @@ public class JwtAuthenticationService {
                     .signWith(getSigningKey())
                     .compact();
 
-            // Create refresh token claims with unique identifier
             Map<String, Object> refreshClaims = new HashMap<>();
             refreshClaims.put("userId", user.getId());
             refreshClaims.put("email", user.getEmail());
+            refreshClaims.put("role", user.getRole().name());
             refreshClaims.put("type", "refresh");
             refreshClaims.put("tokenId", java.util.UUID.randomUUID().toString()); // Add unique identifier
 
@@ -267,11 +268,15 @@ public class JwtAuthenticationService {
             // Extract user information
             Long userId = claims.get("userId", Long.class);
             String email = claims.get("email", String.class);
+            String role = claims.get("role", String.class);
 
             // Create a minimal user object for token generation
             User user = new User();
             user.setId(userId);
             user.setEmail(email);
+            if (role != null) {
+                user.setRole(User.UserRole.valueOf(role));
+            }
 
             // Blacklist the old refresh token
             blacklistedTokens.add(refreshToken);

@@ -33,8 +33,8 @@ export default function RegisterPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (loginData.data && loginData.data.token) {
-        login(loginData.data.token, loginData.data.user);
+      if (loginData.token && loginData.token.accessToken) {
+        login(loginData.token.accessToken, loginData.user);
       } else {
         // If auto-login fails, redirect to login page
         window.location.href = '/auth/login';

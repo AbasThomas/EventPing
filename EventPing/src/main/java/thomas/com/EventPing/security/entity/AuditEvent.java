@@ -43,31 +43,31 @@ public class AuditEvent {
     @Column(name = "ip_address", length = 45) // IPv6 compatible
     private String ipAddress;
 
-    @Column(name = "user_agent", length = 500)
+    @Column(name = "user_agent", length = 1024)
     private String userAgent;
 
-    @Column(name = "request_uri", length = 500)
+    @Column(name = "request_uri", length = 1024)
     private String requestUri;
 
-    @Column(name = "request_method", length = 10)
+    @Column(name = "request_method", length = 16)
     private String requestMethod;
 
     @Column(name = "session_id", length = 255)
     private String sessionId;
 
-    @Column(name = "resource_type", length = 100)
+    @Column(name = "resource_type", length = 255)
     private String resourceType;
 
-    @Column(name = "resource_id", length = 100)
+    @Column(name = "resource_id", length = 255)
     private String resourceId;
 
-    @Column(name = "action", length = 100)
+    @Column(name = "action", length = 255)
     private String action;
 
     @Column(name = "result", length = 50)
     private String result; // SUCCESS, FAILURE, ERROR
 
-    @Column(name = "error_message", length = 1000)
+    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
     @Column(name = "details", columnDefinition = "TEXT")

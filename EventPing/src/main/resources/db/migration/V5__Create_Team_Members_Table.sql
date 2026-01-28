@@ -1,6 +1,6 @@
 -- V5__Create_Team_Members_Table.sql
 
-CREATE TABLE team_members (
+CREATE TABLE IF NOT EXISTS team_members (
     id BIGSERIAL PRIMARY KEY,
     owner_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
@@ -10,5 +10,6 @@ CREATE TABLE team_members (
     UNIQUE(owner_id, user_id)
 );
 
-CREATE INDEX idx_team_owner ON team_members(owner_id);
-CREATE INDEX idx_team_user ON team_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_team_owner ON team_members(owner_id);
+CREATE INDEX IF NOT EXISTS idx_team_user ON team_members(user_id);
+

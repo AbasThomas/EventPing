@@ -1,7 +1,8 @@
 -- V7__Add_Bundled_Credits_And_Cleanup.sql
 
 -- 1. Add monthly_credit_limit to plans
-ALTER TABLE plans ADD COLUMN monthly_credit_limit INTEGER; -- NULL means unlimited
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS monthly_credit_limit INTEGER; -- NULL means unlimited
+
 
 -- 2. Update plan definitions with bundled credits and tiered value
 -- FREE: 100 credits/mo

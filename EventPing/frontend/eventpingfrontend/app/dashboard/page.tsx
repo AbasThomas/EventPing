@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
-import { Plus, Calendar, Clock, Users, ArrowRight, Sparkles } from 'lucide-react';
+import { Plus, Calendar, Clock, Users, ArrowRight, Sparkles, Zap } from 'lucide-react';
 
 interface Event {
   id: number;

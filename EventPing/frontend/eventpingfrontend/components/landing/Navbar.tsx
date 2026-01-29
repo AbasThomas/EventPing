@@ -37,8 +37,8 @@ export function Navbar() {
           onClick={() => navigateTo('/')}
         >
           {/* Logo */}
-          <div className="w-6 h-6 rounded-full border border-indigo-500 flex items-center justify-center shadow-[0_0_10px_rgba(99,102,241,0.5)]">
-            <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+          <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center">
+            <div className="w-2 h-2 bg-white rounded-full"></div>
           </div>
           <span className="font-medium tracking-tight text-white">EventPing</span>
         </div>
@@ -52,6 +52,12 @@ export function Navbar() {
             }`}
           >
             Features
+          </Link>
+          <Link
+            href="#integrations"
+            className="transition-colors hover:text-white"
+          >
+            Integrations
           </Link>
           <Link
             href="/plans"
@@ -98,7 +104,7 @@ export function Navbar() {
               </Link>
               <button 
                 onClick={logout}
-                className="bg-red-600 hover:bg-red-500 text-white text-xs px-4 py-2 rounded-full font-medium transition-all shadow-[0_0_15px_-3px_rgba(239,68,68,0.6)] cursor-pointer"
+                className="bg-red-600 hover:bg-red-500 text-white text-xs px-4 py-2 rounded-full font-medium transition-all cursor-pointer"
               >
                 Sign out
               </button>
@@ -108,7 +114,7 @@ export function Navbar() {
               <Link href="/auth/login" className="text-sm font-light text-slate-300 hover:text-white transition-colors">
                 Sign in
               </Link>
-              <Link href="/auth/register" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-full font-medium transition-all shadow-[0_0_15px_-3px_rgba(99,102,241,0.6)] cursor-pointer">
+              <Link href="/auth/register" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-full font-medium transition-all cursor-pointer">
                 Sign up
               </Link>
             </>

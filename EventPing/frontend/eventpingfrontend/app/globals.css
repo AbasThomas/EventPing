@@ -40,18 +40,18 @@ body {
 
 /* Smooth fade for the background blur */
 .hero-glow {
-    background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.25) 0%, rgba(15, 23, 42, 0) 70%);
+    background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.1) 0%, rgba(15, 23, 42, 0) 70%);
 }
 
 .glass-panel {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.015);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .glass-panel-hover:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Custom dot pattern for the flow connector */

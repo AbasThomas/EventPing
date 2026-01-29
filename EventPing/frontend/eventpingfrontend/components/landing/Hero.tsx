@@ -16,7 +16,6 @@ export function Hero() {
           className="inline-flex items-center gap-2 hover:bg-indigo-500/20 transition-colors text-xs text-indigo-300 bg-indigo-500/10 border-indigo-500/30 border rounded-full mb-8 pt-1 pr-3 pb-1 pl-3"
         >
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
           </span>
           New: Smart Reminders 2.0
@@ -27,7 +26,7 @@ export function Hero() {
       <div className="reveal" style={{ transitionDelay: '300ms' }}>
         <h1 className="md:text-6xl leading-[1.1] text-4xl text-white tracking-tight font-extralight mb-6">
           Seamless Event Planning <br />
-          <span className="bg-clip-text font-light text-transparent bg-gradient-to-br from-[#d0d7fb] to-[#716afb]">
+          <span className="text-indigo-400 font-light">
             For Everyone
           </span>
         </h1>

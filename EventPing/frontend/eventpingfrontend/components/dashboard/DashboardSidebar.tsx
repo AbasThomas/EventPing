@@ -10,7 +10,9 @@ import {
   PlusCircle,
   Bell,
   HelpCircle,
-  ChevronRight
+  ChevronRight,
+  BarChart3,
+  Link2
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
@@ -22,6 +24,8 @@ export function DashboardSidebar() {
     { name: 'Overview', icon: LayoutDashboard, href: '/dashboard' },
     { name: 'My Events', icon: Calendar, href: '/dashboard/events' },
     { name: 'Registrants', icon: Users, href: '/dashboard/registrants' },
+    { name: 'Analytics', icon: BarChart3, href: '/dashboard/analytics' },
+    { name: 'Integrations', icon: Link2, href: '/dashboard/integrations' },
     { name: 'Reminders', icon: Bell, href: '/dashboard/reminders' },
   ];
 
@@ -36,10 +40,10 @@ export function DashboardSidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-950/50 backdrop-blur-xl border-r border-white/5 z-50 hidden lg:flex flex-col">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-950/80 backdrop-blur-xl border-r border-white/5 z-50 hidden lg:flex flex-col">
       <div className="p-6">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
             <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
           </div>
           <span className="font-bold tracking-tight text-white text-lg">EventPing</span>
@@ -67,7 +71,7 @@ export function DashboardSidebar() {
                   <span className="font-medium">{item.name}</span>
                 </div>
                 {isActive(item.href) && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
                 )}
               </Link>
             ))}
@@ -111,9 +115,9 @@ export function DashboardSidebar() {
       </div>
 
       <div className="p-4 mt-auto">
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-500/5 to-cyan-500/5 border border-white/5">
+        <div className="p-4 rounded-2xl bg-slate-900 border border-white/5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold border border-indigo-500/20">
+            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 font-bold border border-white/10">
               {user?.fullName?.charAt(0) || 'U'}
             </div>
             <div className="overflow-hidden">

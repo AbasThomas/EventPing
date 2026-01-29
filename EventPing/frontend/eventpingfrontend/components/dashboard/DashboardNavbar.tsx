@@ -16,8 +16,8 @@ export function DashboardNavbar() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/dashboard" className="flex items-center gap-2 lg:hidden">
-            <div className="w-8 h-8 rounded-full border border-indigo-500 flex items-center justify-center shadow-[0_0_10px_rgba(99,102,241,0.5)]">
-              <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full"></div>
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+              <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
             </div>
             <span className="font-bold tracking-tight text-white">EventPing</span>
           </Link>

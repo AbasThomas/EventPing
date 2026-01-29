@@ -101,11 +101,6 @@ public class RateLimitTracking {
     @Column(length = 50)
     private String planType;
 
-    @PrePersist
-    @PreUpdate
-    protected void onUpdate() {
-        this.lastUpdated = LocalDateTime.now();
-    }
 
     /**
      * Check if the current time window is still valid

@@ -94,6 +94,7 @@ public class RateLimitingService {
                 );
             }
             
+            tracking.setLastUpdated(LocalDateTime.now());
             rateLimitRepository.save(tracking);
             
             LocalDateTime windowEnd = tracking.getWindowStart().plusSeconds(tracking.getWindowDurationSeconds());
@@ -105,6 +106,7 @@ public class RateLimitingService {
             );
         }
         
+        tracking.setLastUpdated(LocalDateTime.now());
         // Save updated tracking
         rateLimitRepository.save(tracking);
         
@@ -183,6 +185,7 @@ public class RateLimitingService {
         tracking.setViolationCount(tracking.getViolationCount() + 1);
         tracking.setMetadata("Manually blocked due to suspicious activity");
         
+        tracking.setLastUpdated(LocalDateTime.now());
         rateLimitRepository.save(tracking);
         
         // Log security violation for manual IP blocking
@@ -218,6 +221,7 @@ public class RateLimitingService {
             tracking.setBlocked(false);
             tracking.setBlockExpiresAt(null);
             tracking.setViolationCount(0);
+            tracking.setLastUpdated(LocalDateTime.now());
             rateLimitRepository.save(tracking);
             
             log.info("Unblocked identifier: {} with type: {}", identifier, type);

@@ -50,4 +50,5 @@ WHERE name = 'ENTERPRISE';
 DROP TABLE IF EXISTS add_ons;
 
 -- 4. Delete existing add_on entity if logic was started (Optional)
+
 -- This is handled by Java code removal later if needed

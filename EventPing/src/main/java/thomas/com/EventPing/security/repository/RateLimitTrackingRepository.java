@@ -1,12 +1,17 @@
 package thomas.com.EventPing.security.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import thomas.com.EventPing.security.model.RateLimitTracking;
 import thomas.com.EventPing.security.model.RateLimitType;
+
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,8 +25,11 @@ import java.util.Optional;
 public interface RateLimitTrackingRepository extends JpaRepository<RateLimitTracking, Long> {
 
     /**
-     * Find rate limit tracking by identifier and type
+     * Find rate limit tracking by identifier and type with pessimistic locking
+     * to handle concurrent updates correctly.
      */
+    @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "5000")})
     Optional<RateLimitTracking> findByIdentifierAndLimitType(String identifier, RateLimitType limitType);
 
     /**

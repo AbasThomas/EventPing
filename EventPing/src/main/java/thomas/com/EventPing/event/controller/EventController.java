@@ -118,6 +118,14 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
+    @GetMapping("/{eventId}/custom-fields")
+    public ResponseEntity<List<thomas.com.EventPing.event.model.EventCustomField>> getEventCustomFields(@PathVariable Long eventId) {
+        // Public endpoint - no authentication required
+        List<thomas.com.EventPing.event.model.EventCustomField> fields = 
+            eventService.getCustomFieldsByEventId(eventId);
+        return ResponseEntity.ok(fields);
+    }
+
     /**
      * Get client IP address from request
      */

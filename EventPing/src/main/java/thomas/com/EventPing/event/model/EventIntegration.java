@@ -29,7 +29,8 @@ public class EventIntegration {
     @NotNull(message = "Integration type is required")
     private IntegrationType integrationType;
 
-    @Column(name = "configuration", columnDefinition = "JSONB")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "configuration")
     private String configuration; // JSON string for future OAuth tokens, webhooks
 
     @Column(name = "is_active", nullable = false)

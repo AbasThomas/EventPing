@@ -3,11 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, Loader2, Save, Type, Bell } from 'lucide-react';
+import { IntegrationSelector } from '@/components/events/IntegrationSelector';
+import { CustomFieldBuilder, CustomField } from '@/components/events/CustomFieldBuilder';
 
 export default function CreateEventPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
@@ -19,6 +23,9 @@ export default function CreateEventPage() {
     reminder1: '60', // 1 hour
     reminder2: '1440', // 1 day
   });
+
+  const [selectedIntegrations, setSelectedIntegrations] = useState<string[]>(['EMAIL']);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -38,13 +45,26 @@ export default function CreateEventPage() {
       if (formData.reminder1) reminders.push(parseInt(formData.reminder1));
       if (formData.reminder2) reminders.push(parseInt(formData.reminder2));
 
+      // Map custom fields to DTO format
+      const customFieldDtos = customFields.map(field => ({
+        fieldName: field.fieldName,
+        fieldType: field.fieldType,
+        required: field.required,
+        placeholderText: field.placeholderText,
+        fieldOptions: field.fieldOptions,
+        displayOrder: field.displayOrder
+      }));
+
       await apiFetch('/events', {
         method: 'POST',
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
           eventDateTime,
-          reminderOffsetMinutes: reminders
+          reminderOffsetMinutes: reminders,
+          customFields: customFieldDtos,
+          integrations: selectedIntegrations,
+          registrationEnabled: true
         }),
       });
 
@@ -59,8 +79,11 @@ export default function CreateEventPage() {
   // Get current date for min attribute
   const today = new Date().toISOString().split('T')[0];
 
+  // Get user's plan integration channels (default to EMAIL if not available)
+  const userPlanChannels = user?.plan?.reminderChannels || 'EMAIL';
+
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in duration-500">
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center gap-4 mb-4">
         <Link href="/dashboard/events" className="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors">
             <ArrowLeft className="w-5 h-5" />
@@ -79,6 +102,7 @@ export default function CreateEventPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Event Details */}
         <div className="glass-panel p-6 rounded-2xl border border-white/10 space-y-6">
             <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 ml-1 flex items-center gap-2">
@@ -142,13 +166,14 @@ export default function CreateEventPage() {
             </div>
         </div>
 
+        {/* Reminder Settings */}
         <div className="glass-panel p-6 rounded-2xl border border-white/10 space-y-6">
             <div>
                 <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
                     <Bell className="w-5 h-5 text-amber-400" />
                     Automatic Reminders
                 </h3>
-                <p className="text-sm text-slate-400 mb-6">Conform when participants will receive email reminders before the event.</p>
+                <p className="text-sm text-slate-400 mb-6">Configure when participants will receive reminders before the event.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -183,6 +208,24 @@ export default function CreateEventPage() {
             </div>
         </div>
 
+        {/* Integration Selector */}
+        <div className="glass-panel p-6 rounded-2xl border border-white/10">
+          <IntegrationSelector
+            userPlanChannels={userPlanChannels}
+            selectedIntegrations={selectedIntegrations}
+            onChange={setSelectedIntegrations}
+          />
+        </div>
+
+        {/* Custom Fields Builder */}
+        <div className="glass-panel p-6 rounded-2xl border border-white/10">
+          <CustomFieldBuilder
+            fields={customFields}
+            onChange={setCustomFields}
+          />
+        </div>
+
+        {/* Submit Button */}
         <div className="flex items-center justify-end gap-4 pt-2">
             <Link 
                 href="/dashboard/events"
@@ -192,8 +235,8 @@ export default function CreateEventPage() {
             </Link>
             <button
                 type="submit"
-                disabled={isSubmitting}
-                className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white px-8 py-3 rounded-xl font-medium shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                disabled={isSubmitting || selectedIntegrations.length === 0}
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-medium transition-all disabled:opacity-70 disabled:cursor-not-allowed"
             >
                 {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

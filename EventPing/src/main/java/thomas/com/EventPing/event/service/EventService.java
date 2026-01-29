@@ -14,4 +14,5 @@ public interface EventService {
     void deleteEvent(Long id);
     List<EventResponseDto> getUserEvents(User user);
     void markExpiredEvents();
+    List<thomas.com.EventPing.event.model.EventCustomField> getCustomFieldsByEventId(Long eventId);
 }

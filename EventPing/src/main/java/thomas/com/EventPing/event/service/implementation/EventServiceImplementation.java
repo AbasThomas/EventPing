@@ -171,6 +171,40 @@ public class EventServiceImplementation implements EventService {
         return UUID.randomUUID().toString().substring(0, 8);
     }
 
+    private void validateAndSaveIntegrations(Event event, List<String> integrationTypes, User creator) {
+        // Get user's plan allowed integration channels
+        String allowedChannels = creator.getPlan().getReminderChannels(); // e.g., "EMAIL,WHATSAPP"
+        List<String> allowed = allowedChannels != null ? 
+            List.of(allowedChannels.split(",")) : 
+            List.of("EMAIL");
+        
+        for (String integrationType : integrationTypes) {
+            // Validate integration is allowed by user's plan
+            if (!allowed.contains(integrationType.toUpperCase())) {
+                throw new RuntimeException("Integration " + integrationType + " is not available in your plan");
+            }
+            
+            // Create and save integration
+            thomas.com.EventPing.event.model.EventIntegration integration = new thomas.com.EventPing.event.model.EventIntegration();
+            integration.setEvent(event);
+            try {
+                integration.setIntegrationType(
+                    thomas.com.EventPing.event.model.EventIntegration.IntegrationType.valueOf(integrationType.toUpperCase())
+                );
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid integration type: " + integrationType);
+            }
+            integration.setActive(true);
+            integration.setConfiguration(null); // No configuration needed for now
+            integrationRepository.save(integration);
+        }
+    }
+
+    @Override
+    public List<thomas.com.EventPing.event.model.EventCustomField> getCustomFieldsByEventId(Long eventId) {
+        return customFieldRepository.findByEventIdOrderByDisplayOrder(eventId);
+    }
+
     private EventResponseDto toResponseDto(Event event) {
         EventResponseDto dto = eventMapper.toEventResponseDto(event);
         dto.setParticipantCount(participantRepository.countByEvent(event));

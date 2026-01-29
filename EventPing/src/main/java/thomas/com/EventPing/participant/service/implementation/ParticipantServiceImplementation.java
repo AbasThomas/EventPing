@@ -29,6 +29,8 @@ public class ParticipantServiceImplementation implements ParticipantService {
     private final ReminderRepository reminderRepository;
     private final ParticipantMapper participantMapper;
     private final RateLimitService rateLimitService;
+    private final thomas.com.EventPing.participant.repository.RegistrationResponseRepository responseRepository;
+    private final thomas.com.EventPing.event.repository.EventCustomFieldRepository customFieldRepository;
 
     @Override
     public ParticipantResponseDto joinEvent(String eventSlug, JoinEventRequest request, List<Long> reminderOffsetMinutes) {
@@ -89,6 +91,31 @@ public class ParticipantServiceImplementation implements ParticipantService {
                     }
                 } catch (IllegalArgumentException e) {
                     // Log or ignore invalid channels in plan config
+                }
+            }
+        }
+        
+        // Save custom field responses
+        if (request.getCustomFieldResponses() != null && !request.getCustomFieldResponses().isEmpty()) {
+            List<thomas.com.EventPing.event.model.EventCustomField> customFields = 
+                customFieldRepository.findByEventIdOrderByDisplayOrder(event.getId());
+            
+            for (thomas.com.EventPing.event.model.EventCustomField field : customFields) {
+                String responseValue = request.getCustomFieldResponses().get(field.getFieldName());
+                
+                // Validate required fields
+                if (field.isRequired() && (responseValue == null || responseValue.trim().isEmpty())) {
+                    throw new RuntimeException("Required field '" + field.getFieldName() + "' is missing");
+                }
+                
+                // Save response if provided
+                if (responseValue != null && !responseValue.trim().isEmpty()) {
+                    thomas.com.EventPing.participant.model.RegistrationResponse response = 
+                        new thomas.com.EventPing.participant.model.RegistrationResponse();
+                    response.setParticipant(savedParticipant);
+                    response.setCustomField(field);
+                    response.setResponseValue(responseValue);
+                    responseRepository.save(response);
                 }
             }
         }

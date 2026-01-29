@@ -27,6 +27,8 @@ public class EventServiceImplementation implements EventService {
     private final EventMapper eventMapper;
     private final RateLimitService rateLimitService;
     private final thomas.com.EventPing.security.service.AuditLoggingService auditLoggingService;
+    private final thomas.com.EventPing.event.repository.EventCustomFieldRepository customFieldRepository;
+    private final thomas.com.EventPing.event.repository.EventIntegrationRepository integrationRepository;
 
     @Override
     public EventResponseDto createEvent(User creator, CreateEventRequest request) {
@@ -43,8 +45,29 @@ public class EventServiceImplementation implements EventService {
         event.setStatus(Event.EventStatus.ACTIVE);
         event.setSlug(generateSlug());
         event.setCreator(creator);
+        event.setRegistrationEnabled(request.getRegistrationEnabled() != null ? request.getRegistrationEnabled() : true);
 
         Event savedEvent = eventRepository.save(event);
+        
+        // Save custom fields
+        if (request.getCustomFields() != null && !request.getCustomFields().isEmpty()) {
+            for (thomas.com.EventPing.event.dtos.CustomFieldDto fieldDto : request.getCustomFields()) {
+                thomas.com.EventPing.event.model.EventCustomField field = new thomas.com.EventPing.event.model.EventCustomField();
+                field.setEvent(savedEvent);
+                field.setFieldName(fieldDto.getFieldName());
+                field.setFieldType(fieldDto.getFieldType());
+                field.setRequired(fieldDto.isRequired());
+                field.setPlaceholderText(fieldDto.getPlaceholderText());
+                field.setFieldOptions(fieldDto.getFieldOptions());
+                field.setDisplayOrder(fieldDto.getDisplayOrder());
+                customFieldRepository.save(field);
+            }
+        }
+        
+        // Save integrations with plan validation
+        if (request.getIntegrations() != null && !request.getIntegrations().isEmpty()) {
+            validateAndSaveIntegrations(savedEvent, request.getIntegrations(), creator);
+        }
 
         // Log event creation
         auditLoggingService.logDataModification(

@@ -73,6 +73,15 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<thomas.com.EventPing.reminder.model.Reminder> reminders = new ArrayList<>();
 
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventCustomField> customFields = new ArrayList<>();
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventIntegration> integrations = new ArrayList<>();
+
+    @Column(name = "registration_enabled", nullable = false)
+    private Boolean registrationEnabled = true;
+
     @PrePersist
     public void prePersist() {
         if (slug == null || slug.isEmpty()) {

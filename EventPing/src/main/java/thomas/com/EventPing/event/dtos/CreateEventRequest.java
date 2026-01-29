@@ -19,4 +19,10 @@ public class CreateEventRequest {
     
     @NotNull(message = "At least one reminder offset is required")
     private List<Long> reminderOffsetMinutes; // e.g., [60, 1440] for 1h and 1day
+    
+    private List<CustomFieldDto> customFields;
+    
+    private List<String> integrations; // Integration type names: EMAIL, WHATSAPP, etc.
+    
+    private Boolean registrationEnabled = true;
 }

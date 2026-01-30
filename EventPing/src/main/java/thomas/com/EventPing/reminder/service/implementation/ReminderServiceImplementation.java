@@ -68,10 +68,10 @@ public class ReminderServiceImplementation implements ReminderService {
     private void sendCreatorReminder(thomas.com.EventPing.event.model.Event event) {
         User creator = event.getCreator();
         // Check enabled integrations for creator and send
-        if (creator.isEnableWhatsApp()) {
+        if (creator.getEnableWhatsApp()) {
              whatsAppBotService.sendReminder(creator, event);
         }
-        if (creator.isEnableGmail()) {
+        if (creator.getEnableGmail()) {
              gmailService.sendReminder(creator, event);
         }
         // ... discord, slack ...

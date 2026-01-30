@@ -27,7 +27,7 @@ public class WhatsAppBotNotificationService implements NotificationService {
 
     @Override
     public boolean sendReminder(User user, Event event) {
-        if (!user.isEnableWhatsApp() || user.getPhoneNumber() == null) {
+        if (!user.getEnableWhatsApp() || user.getPhoneNumber() == null) {
             return false;
         }
 

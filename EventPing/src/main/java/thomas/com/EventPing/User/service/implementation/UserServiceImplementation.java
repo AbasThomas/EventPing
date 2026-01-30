@@ -197,23 +197,23 @@ public class UserServiceImplementation implements UserService {
         
         return java.util.Map.of(
             "whatsapp", java.util.Map.of(
-                "enabled", user.isEnableWhatsApp(),
+                "enabled", user.getEnableWhatsApp(),
                 "configured", user.getPhoneNumber() != null
             ),
             "gmail", java.util.Map.of(
-                "enabled", user.isEnableGmail(),
+                "enabled", user.getEnableGmail(),
                 "configured", user.getGmailAccessToken() != null
             ),
             "discord", java.util.Map.of(
-                "enabled", user.isEnableDiscord(),
+                "enabled", user.getEnableDiscord(),
                 "configured", user.getDiscordUserId() != null
             ),
             "googleCalendar", java.util.Map.of(
-                "enabled", user.isEnableGoogleCalendar(),
+                "enabled", user.getEnableGoogleCalendar(),
                 "configured", user.getGoogleCalendarAccessToken() != null
             ),
             "slack", java.util.Map.of(
-                "enabled", user.isEnableSlack(),
+                "enabled", user.getEnableSlack(),
                 "configured", user.getSlackAccessToken() != null
             )
         );

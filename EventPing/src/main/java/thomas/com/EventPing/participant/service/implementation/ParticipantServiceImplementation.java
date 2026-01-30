@@ -85,7 +85,7 @@ public class ParticipantServiceImplementation implements ParticipantService {
                          if (participant.getPhoneNumber() == null || participant.getPhoneNumber().trim().isEmpty()) {
                              continue;
                          }
-                         if (!event.getCreator().isEnableWhatsApp()) {
+                         if (!event.getCreator().getEnableWhatsApp()) {
                              continue;
                          }
                     }

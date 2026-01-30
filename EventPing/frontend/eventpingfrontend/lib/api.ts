@@ -55,3 +55,11 @@ export const apiFetch = async (endpoint: string, options: FetchOptions = {}) => 
 
   return data;
 };
+
+export const api = {
+  get: (endpoint: string) => apiFetch(endpoint, { method: 'GET' }),
+  post: (endpoint: string, body: any) => apiFetch(endpoint, { method: 'POST', body: JSON.stringify(body) }),
+  patch: (endpoint: string, body: any) => apiFetch(endpoint, { method: 'PATCH', body: JSON.stringify(body) }),
+  put: (endpoint: string, body: any) => apiFetch(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
+  delete: (endpoint: string) => apiFetch(endpoint, { method: 'DELETE' }),
+};

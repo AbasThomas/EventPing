@@ -1,9 +1,9 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers } = require('@whiskeysockets/baileys');
 const express = require('express');
-const qrcode = require('qrcode-terminal');
 const pino = require('pino');
+const qrcode = require('qrcode-terminal');
 const app = express();
-const port = 3000;
+const port = 4000;
 
 app.use(express.json());
 
@@ -14,8 +14,10 @@ async function connectToWhatsApp() {
 
     sock = makeWASocket({
         auth: state,
-        printQRInTerminal: true,
-        logger: pino({ level: 'silent' }),
+        // Using Ubuntu Chrome which is often more stable for bots
+        browser: Browsers.ubuntu('Chrome'),
+        syncFullHistory: false,
+        logger: pino({ level: 'info' }),
     });
 
     sock.ev.on('creds.update', saveCreds);

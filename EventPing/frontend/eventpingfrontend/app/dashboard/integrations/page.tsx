@@ -12,7 +12,7 @@ import {
   ExternalLink,
   Loader2
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -80,8 +80,8 @@ export default function IntegrationsPage() {
 
   const fetchIntegrations = async () => {
     try {
-      const response = await api.get(`/users/${user?.id}/integrations/status`);
-      setIntegrations(response.data);
+      const data = await api.get(`/users/${user?.id}/integrations/status`);
+      setIntegrations(data);
     } catch (error) {
       console.error('Failed to fetch integrations:', error);
       toast.error('Failed to load integration status');

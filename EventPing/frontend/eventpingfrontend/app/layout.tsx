@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 import { ScrollReveal } from "@/components/landing/ScrollReveal";
 import { AuthProvider } from "@/lib/auth-context";
 import { BackgroundLayer } from "@/components/shared/BackgroundLayer";
+import { Toaster } from 'sonner';
 
 export default function RootLayout({
   children,
@@ -27,6 +28,7 @@ export default function RootLayout({
         <AuthProvider>
           <ScrollReveal />
           <BackgroundLayer />
+          <Toaster position="top-center" richColors />
           {children}
         </AuthProvider>
       </body>

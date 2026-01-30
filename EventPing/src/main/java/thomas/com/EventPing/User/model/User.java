@@ -49,14 +49,14 @@ public class User {
 
     // WhatsApp Integration
     @Column(name = "enable_whatsapp")
-    private boolean enableWhatsApp = false;
+    private Boolean enableWhatsApp = false;
 
     // Discord Integration
     @Column(name = "discord_user_id")
     private String discordUserId;
 
     @Column(name = "enable_discord")
-    private boolean enableDiscord = false;
+    private Boolean enableDiscord = false;
 
     // Gmail Integration
     @Column(name = "gmail_access_token", length = 2048)
@@ -66,7 +66,7 @@ public class User {
     private String gmailRefreshToken;
 
     @Column(name = "enable_gmail")
-    private boolean enableGmail = false;
+    private Boolean enableGmail = false;
 
     // Google Calendar Integration
     @Column(name = "google_calendar_access_token", length = 2048)
@@ -76,7 +76,7 @@ public class User {
     private String googleCalendarRefreshToken;
 
     @Column(name = "enable_google_calendar")
-    private boolean enableGoogleCalendar = false;
+    private Boolean enableGoogleCalendar = false;
 
     // Slack Integration
     @Column(name = "slack_access_token", length = 2048)
@@ -86,7 +86,7 @@ public class User {
     private String slackUserId;
 
     @Column(name = "enable_slack")
-    private boolean enableSlack = false;
+    private Boolean enableSlack = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

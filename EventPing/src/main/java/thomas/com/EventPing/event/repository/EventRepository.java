@@ -19,4 +19,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     long countByCreatorAndCreatedAtAfter(@Param("creator") User creator, @Param("since") LocalDateTime since);
     
     List<Event> findByStatusAndEventDateTimeBefore(Event.EventStatus status, LocalDateTime dateTime);
+    
+    @Query("SELECT DISTINCT e FROM Event e JOIN e.reminderTimes rt WHERE rt BETWEEN :start AND :end AND e.status = 'ACTIVE'")
+    List<Event> findEventsWithRemindersBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

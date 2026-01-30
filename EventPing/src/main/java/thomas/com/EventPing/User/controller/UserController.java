@@ -108,6 +108,45 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+    
+    // INTEGRATION ENDPOINTS
+    
+    @PatchMapping("/{id}/integrations")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<User> updateIntegrations(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, Object> updates,
+            Authentication authentication,
+            HttpServletRequest request) {
+            
+        User currentUser = (User) authentication.getPrincipal();
+        // Permission check
+        if (!currentUser.getId().equals(id) && !currentUser.getRole().equals(User.UserRole.ADMIN)) {
+             return ResponseEntity.status(403).build();
+        }
+
+        // Logic to update user integrations
+        // Since UserService might not have this method exposed yet, we can do it here or better, add to UserService.
+        // For brevity in this task, I will call a new method in UserService or cast.
+        // I'll assume we can implement it in UserService and call it.
+        // Or implement logic here if Repository is available (it is not injected directly here, but userService is).
+        
+        return ResponseEntity.ok(userService.updateIntegrations(id, updates));
+    }
+    
+    @GetMapping("/{id}/integrations/status")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<java.util.Map<String, Object>> getIntegrationStatus(
+            @PathVariable Long id,
+            Authentication authentication) {
+            
+        User currentUser = (User) authentication.getPrincipal();
+        if (!currentUser.getId().equals(id) && !currentUser.getRole().equals(User.UserRole.ADMIN)) {
+             return ResponseEntity.status(403).build();
+        }
+        
+        return ResponseEntity.ok(userService.getIntegrationStatus(id));
+    }
 
     /**
      * Get client IP address from request

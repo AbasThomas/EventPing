@@ -44,6 +44,11 @@ public class Event {
     @Future(message = "Event date must be in the future")
     private LocalDateTime eventDateTime;
 
+    @ElementCollection
+    @CollectionTable(name = "event_reminder_times", joinColumns = @JoinColumn(name = "event_id"))
+    @Column(name = "reminder_time")
+    private List<LocalDateTime> reminderTimes = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EventStatus status = EventStatus.ACTIVE;

@@ -47,6 +47,14 @@ public class EventServiceImplementation implements EventService {
         event.setCreator(creator);
         event.setRegistrationEnabled(request.getRegistrationEnabled() != null ? request.getRegistrationEnabled() : true);
 
+        // Calculate reminder times
+        if (request.getReminderOffsetMinutes() != null && !request.getReminderOffsetMinutes().isEmpty()) {
+            List<LocalDateTime> reminderTimes = request.getReminderOffsetMinutes().stream()
+                .map(offset -> request.getEventDateTime().minusMinutes(offset))
+                .collect(Collectors.toList());
+            event.setReminderTimes(reminderTimes);
+        }
+
         Event savedEvent = eventRepository.save(event);
         
         // Save custom fields

@@ -151,4 +151,71 @@ public class UserServiceImplementation implements UserService {
                 null
         );
     }
+    
+    @Override
+    public User updateIntegrations(Long id, java.util.Map<String, Object> updates) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // WhatsApp
+        if (updates.containsKey("enableWhatsApp")) {
+            user.setEnableWhatsApp((Boolean) updates.get("enableWhatsApp"));
+        }
+        if (updates.containsKey("phoneNumber")) {
+            user.setPhoneNumber((String) updates.get("phoneNumber"));
+        }
+        
+        // Discord
+        if (updates.containsKey("enableDiscord")) {
+            user.setEnableDiscord((Boolean) updates.get("enableDiscord"));
+        }
+        if (updates.containsKey("discordUserId")) {
+            user.setDiscordUserId((String) updates.get("discordUserId"));
+        }
+        
+        // Gmail
+        if (updates.containsKey("enableGmail")) {
+            user.setEnableGmail((Boolean) updates.get("enableGmail"));
+        }
+        
+        // Google Calendar
+        if (updates.containsKey("enableGoogleCalendar")) {
+            user.setEnableGoogleCalendar((Boolean) updates.get("enableGoogleCalendar"));
+        }
+        
+        // Slack
+        if (updates.containsKey("enableSlack")) {
+            user.setEnableSlack((Boolean) updates.get("enableSlack"));
+        }
+        
+        user.setUpdatedAt(LocalDateTime.now());
+        return userRepository.save(user);
+    }
+    
+    @Override
+    public java.util.Map<String, Object> getIntegrationStatus(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        
+        return java.util.Map.of(
+            "whatsapp", java.util.Map.of(
+                "enabled", user.isEnableWhatsApp(),
+                "configured", user.getPhoneNumber() != null
+            ),
+            "gmail", java.util.Map.of(
+                "enabled", user.isEnableGmail(),
+                "configured", user.getGmailAccessToken() != null
+            ),
+            "discord", java.util.Map.of(
+                "enabled", user.isEnableDiscord(),
+                "configured", user.getDiscordUserId() != null
+            ),
+            "googleCalendar", java.util.Map.of(
+                "enabled", user.isEnableGoogleCalendar(),
+                "configured", user.getGoogleCalendarAccessToken() != null
+            ),
+            "slack", java.util.Map.of(
+                "enabled", user.isEnableSlack(),
+                "configured", user.getSlackAccessToken() != null
+            )
+        );
+    }
 }

@@ -13,4 +13,8 @@ public interface UserService {
     List<UserResponseDto> getAllUsers(); // get all users
     UserResponseDto updateUser(Long id, thomas.com.EventPing.User.dtos.UserRequest request); // update user
     void deleteUser(Long id); // delete user
+    
+    // Integration methods
+    thomas.com.EventPing.User.model.User updateIntegrations(Long id, java.util.Map<String, Object> updates);
+    java.util.Map<String, Object> getIntegrationStatus(Long id);
 }

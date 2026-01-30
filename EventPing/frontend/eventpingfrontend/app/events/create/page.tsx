@@ -18,7 +18,22 @@ export default function CreateEventPage() {
     maxParticipants: 100,
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  // const [error, setError] = useState(''); // We use modal for error now
+  
+  // Modal State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    title: string;
+    message: React.ReactNode; // Changed to ReactNode to support links or formatting
+    type: 'success' | 'error' | 'info';
+    primaryAction?: { label: string; onClick: () => void };
+    secondaryAction?: { label: string; onClick: () => void };
+  }>({ title: '', message: '', type: 'info' });
+
+  const showModal = (config: typeof modalConfig) => {
+    setModalConfig(config);
+    setModalOpen(true);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,16 +42,51 @@ export default function CreateEventPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
-      await apiFetch('/events', {
+      const result = await apiFetch('/events', {
         method: 'POST',
         body: JSON.stringify(formData),
       });
-      router.push('/dashboard');
+      
+      // result usually contains the created event, we need the slug or id to form the public link
+      // Assuming result.slug exists, or we construct it. If backend returns "message" only, we might need to adjust.
+      // Assuming result returns the Event object.
+      
+      const publicLink = `${window.location.origin}/events/${result.slug || result.id}`;
+
+      showModal({
+        title: 'Event Created Successfully!',
+        message: (
+            <div className="flex flex-col gap-2">
+                <p>Your event is now live. Share this link with your participants:</p>
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 break-all font-mono text-sm text-indigo-300">
+                    {publicLink}
+                </div>
+            </div>
+        ),
+        type: 'success',
+        primaryAction: {
+            label: 'Copy Link & Go to Dashboard',
+            onClick: () => {
+                navigator.clipboard.writeText(publicLink);
+                router.push('/dashboard');
+            }
+        },
+        secondaryAction: {
+            label: 'Go to Public Page',
+            onClick: () => {
+                router.push(`/events/${result.slug || result.id}`);
+            }
+        }
+      });
+      
     } catch (err: any) {
-      setError(err.message || 'Failed to create event');
+      showModal({
+        title: 'Failed to Create Event',
+        message: err.message || 'An unexpected error occurred.',
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -186,6 +236,16 @@ export default function CreateEventPage() {
           </form>
         </div>
       </div>
+      
+      <CustomModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        primaryAction={modalConfig.primaryAction}
+        secondaryAction={modalConfig.secondaryAction}
+      />
     </PageLayout>
   );
 }

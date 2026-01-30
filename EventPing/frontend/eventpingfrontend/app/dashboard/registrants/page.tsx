@@ -50,7 +50,12 @@ export default function RegistrantsPage() {
             const allParticipants = await Promise.all(
                 eventsData.map(async (event: Event) => {
                     const p = await apiFetch(`/participants/events/${event.slug}`);
-                    return p.map((item: any) => ({...item, eventName: event.title}));
+                    return p.map((item: any) => ({
+                        ...item, 
+                        eventName: event.title,
+                        fullName: item.fullName || item.email?.split('@')[0] || 'Unknown',
+                        phoneNumber: item.phoneNumber || 'N/A'
+                    }));
                 })
             );
             setParticipants(allParticipants.flat());
@@ -66,10 +71,19 @@ export default function RegistrantsPage() {
   }, []);
 
   const filteredParticipants = participants.filter(p => {
-    const matchesSearch = p.fullName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         p.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesEvent = selectedEvent === 'all' || p.eventName === events.find(e => e.slug === selectedEvent)?.title;
-    return matchesSearch && matchesEvent;
+    if (!p) return false;
+    const name = String(p.fullName || '');
+    const email = String(p.email || '');
+    const query = String(searchQuery || '').toLowerCase();
+    
+    const matchesSearch = name.toLowerCase().includes(query) || 
+                         email.toLowerCase().includes(query);
+    
+    // Handle potential missing event info
+    if (selectedEvent === 'all') return matchesSearch;
+    
+    const eventTitle = events.find(e => e.slug === selectedEvent)?.title;
+    return matchesSearch && (p.eventName === eventTitle);
   });
 
   return (

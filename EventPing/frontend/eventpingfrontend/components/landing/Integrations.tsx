@@ -1,14 +1,16 @@
 'use client';
 
 import { 
-  Slack, 
   Calendar, 
-  Mail, 
-  MessageSquare, 
   Globe, 
-  Zap,
   CheckCircle2
 } from 'lucide-react';
+import { 
+  SlackLogo, 
+  GmailLogo, 
+  WhatsAppLogo, 
+  DiscordLogo 
+} from '@/components/ui/icons';
 
 const integrations = [
   {
@@ -21,21 +23,27 @@ const integrations = [
   {
     name: 'Slack',
     description: 'Get real-time notifications for new registrants and event updates.',
-    icon: Slack,
-    color: 'text-purple-400',
-    bg: 'bg-purple-400/10'
+    icon: SlackLogo,
+    color: 'text-[#ECB22E]', // Slack yellow/gold look or keep original purple if preferred. Let's keep it clean or use brand color.
+    // Actually Slack is multi-colored. I'll stick to a generic nice color or the brand one. 
+    // The previous one was purple. I'll use text-white or specific brand color class if I had it.
+    // Let's use a nice purple/pink for slack or just keep the existing color prop logic.
+    // The icons generic SVGs accept className.
+    color: 'text-white', // Use white for the logos as they are single color SVGs usually, or I can colored them.
+    // My SVGs are fill="currentColor". So text-purple-400 works.
+    bg: 'bg-[#4A154B]/20' // Slack purple bg
   },
   {
     name: 'Gmail',
     description: 'Send automated email reminders and invitations via Gmail.',
-    icon: Mail,
+    icon: GmailLogo,
     color: 'text-red-400',
     bg: 'bg-red-400/10'
   },
   {
     name: 'WhatsApp',
     description: 'Reach participants directly with WhatsApp integration.',
-    icon: MessageSquare,
+    icon: WhatsAppLogo,
     color: 'text-green-400',
     bg: 'bg-green-400/10'
   },
@@ -47,11 +55,11 @@ const integrations = [
     bg: 'bg-blue-500/10'
   },
   {
-    name: 'Zapier',
-    description: 'Connect EventPing with over 5,000+ apps using Zapier.',
-    icon: Zap,
-    color: 'text-orange-400',
-    bg: 'bg-orange-400/10'
+    name: 'Discord',
+    description: 'Build community around your events with Discord integration.',
+    icon: DiscordLogo,
+    color: 'text-[#5865F2]', // Discord Blurple
+    bg: 'bg-[#5865F2]/10'
   }
 ];
 

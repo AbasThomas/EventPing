@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import thomas.com.EventPing.reminder.model.Reminder;
 import thomas.com.EventPing.reminder.repository.ReminderRepository;
 import thomas.com.EventPing.reminder.service.ReminderService;
+import thomas.com.EventPing.event.repository.EventRepository; // Added import
 import thomas.com.EventPing.integration.service.impl.WhatsAppBotNotificationService;
 import thomas.com.EventPing.integration.service.impl.GmailNotificationService;
 import thomas.com.EventPing.integration.service.impl.DiscordNotificationService;
@@ -37,7 +38,7 @@ public class ReminderServiceImplementation implements ReminderService {
     private final SlackNotificationService slackService;
 
     private final EventRepository eventRepository;
-    private final thomas.com.EventPing.event.repository.EventRepository eventRepo; // Alias if needed or reuse
+    // Removed redundant eventRepo field
 
     @Override
     public void sendDueReminders() {

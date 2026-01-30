@@ -1,0 +1,20 @@
+{
+  "name": "whatsapp-event-bot",
+  "version": "1.0.0",
+  "description": "Free WhatsApp bot for event reminders",
+  "main": "whatsapp-bot.js",
+  "scripts": {
+    "start": "node whatsapp-bot.js",
+    "dev": "nodemon whatsapp-bot.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.5.0",
+    "express": "^4.18.2",
+    "qrcode-terminal": "^0.12.0",
+    "pino": "^8.11.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

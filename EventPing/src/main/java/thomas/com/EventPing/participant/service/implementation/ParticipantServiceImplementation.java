@@ -57,6 +57,7 @@ public class ParticipantServiceImplementation implements ParticipantService {
         Participant participant = new Participant();
         participant.setEvent(event);
         participant.setEmail(request.getEmail());
+        participant.setPhoneNumber(request.getPhoneNumber());
         participant.setUnsubscribed(false);
 
         Participant savedParticipant = participantRepository.save(participant);
@@ -79,6 +80,16 @@ public class ParticipantServiceImplementation implements ParticipantService {
                 try {
                     Reminder.ReminderChannel channel = Reminder.ReminderChannel.valueOf(channelStr.trim());
                     
+                    // Skip WhatsApp reminder if phone number is not provided or creator disabled it
+                    if (channel == Reminder.ReminderChannel.WHATSAPP) {
+                         if (participant.getPhoneNumber() == null || participant.getPhoneNumber().trim().isEmpty()) {
+                             continue;
+                         }
+                         if (!event.getCreator().isEnableWhatsApp()) {
+                             continue;
+                         }
+                    }
+
                     for (Long offsetMinutes : finalOffsets) {
                         Reminder reminder = new Reminder();
                         reminder.setEvent(event);

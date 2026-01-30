@@ -41,11 +41,52 @@ public class User {
     @NoSqlInjection
     private String fullName;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", unique = true)
     @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Invalid phone number format")
     @NoXss
     @NoSqlInjection
     private String phoneNumber;
+
+    // WhatsApp Integration
+    @Column(name = "enable_whatsapp")
+    private boolean enableWhatsApp = false;
+
+    // Discord Integration
+    @Column(name = "discord_user_id")
+    private String discordUserId;
+
+    @Column(name = "enable_discord")
+    private boolean enableDiscord = false;
+
+    // Gmail Integration
+    @Column(name = "gmail_access_token", length = 2048)
+    private String gmailAccessToken;
+
+    @Column(name = "gmail_refresh_token", length = 2048)
+    private String gmailRefreshToken;
+
+    @Column(name = "enable_gmail")
+    private boolean enableGmail = false;
+
+    // Google Calendar Integration
+    @Column(name = "google_calendar_access_token", length = 2048)
+    private String googleCalendarAccessToken;
+
+    @Column(name = "google_calendar_refresh_token", length = 2048)
+    private String googleCalendarRefreshToken;
+
+    @Column(name = "enable_google_calendar")
+    private boolean enableGoogleCalendar = false;
+
+    // Slack Integration
+    @Column(name = "slack_access_token", length = 2048)
+    private String slackAccessToken;
+
+    @Column(name = "slack_user_id")
+    private String slackUserId;
+
+    @Column(name = "enable_slack")
+    private boolean enableSlack = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

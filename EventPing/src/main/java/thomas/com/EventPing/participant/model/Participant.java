@@ -37,6 +37,11 @@ public class Participant {
     @NoSqlInjection
     private String email;
 
+    @Column(name = "phone_number")
+    @NoXss
+    @NoSqlInjection
+    private String phoneNumber;
+
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt = LocalDateTime.now();
 

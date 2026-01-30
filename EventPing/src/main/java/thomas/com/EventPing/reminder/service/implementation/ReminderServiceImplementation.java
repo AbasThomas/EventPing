@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 import thomas.com.EventPing.reminder.model.Reminder;
 import thomas.com.EventPing.reminder.repository.ReminderRepository;
 import thomas.com.EventPing.reminder.service.ReminderService;
+import thomas.com.EventPing.integration.whatsapp.service.WhatsAppService;
 
 import thomas.com.EventPing.User.model.User;
+
 import thomas.com.EventPing.User.repository.UserRepository;
 import thomas.com.EventPing.common.service.RateLimitService;
 
@@ -27,6 +29,7 @@ public class ReminderServiceImplementation implements ReminderService {
     private final JavaMailSender mailSender;
     private final RateLimitService rateLimitService;
     private final UserRepository userRepository;
+    private final WhatsAppService whatsAppService;
 
     @Override
     public void sendDueReminders() {
@@ -52,8 +55,17 @@ public class ReminderServiceImplementation implements ReminderService {
                     continue;
                 }
                 
-                // Send email
-                sendEmail(reminder);
+                // Send reminder based on channel
+                switch (reminder.getChannel()) {
+                    case EMAIL:
+                        sendEmail(reminder);
+                        break;
+                    case WHATSAPP:
+                        sendWhatsApp(reminder);
+                        break;
+                    default:
+                        log.warn("Unsupported reminder channel: {}", reminder.getChannel());
+                }
                 
                 // Mark as sent and increment user credits
                 reminder.setSent(true);
@@ -110,6 +122,36 @@ public class ReminderServiceImplementation implements ReminderService {
             log.info("Email sent successfully to {}", reminder.getParticipant().getEmail());
         } catch (Exception e) {
             log.error("Failed to send email: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    private void sendWhatsApp(Reminder reminder) {
+        String phoneNumber = reminder.getParticipant().getPhoneNumber();
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            log.warn("Cannot send WhatsApp reminder {}: Participant has no phone number", reminder.getId());
+            return;
+        }
+
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a");
+            String eventTime = reminder.getEvent().getEventDateTime().format(formatter);
+            
+            String message = String.format(
+                "📅 *Event Reminder*\n\n" +
+                "Event: *%s*\n" +
+                "Date: %s\n" +
+                "%s\n\n" +
+                "See you there!",
+                reminder.getEvent().getTitle(),
+                eventTime,
+                reminder.getEvent().getDescription() != null ? reminder.getEvent().getDescription() : ""
+            );
+            
+            whatsAppService.sendMessage(phoneNumber, message);
+            log.info("WhatsApp reminder sent successfully to {}", phoneNumber);
+        } catch (Exception e) {
+            log.error("Failed to send WhatsApp reminder: {}", e.getMessage());
             throw e;
         }
     }

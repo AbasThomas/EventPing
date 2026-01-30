@@ -28,6 +28,7 @@ export default function JoinEventPage({ params }: { params: Promise<{ slug: stri
     const [loading, setLoading] = useState(true);
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [customFieldResponses, setCustomFieldResponses] = useState<Record<string, string>>({});
     
     const [reminders, setReminders] = useState({
@@ -94,6 +95,7 @@ export default function JoinEventPage({ params }: { params: Promise<{ slug: stri
                 body: JSON.stringify({ 
                     email, 
                     name,
+                    phoneNumber,
                     customFieldResponses
                 }),
             });
@@ -254,6 +256,22 @@ export default function JoinEventPage({ params }: { params: Promise<{ slug: stri
                                 onChange={(e) => setName(e.target.value)}
                                 className="block w-full pl-10 pr-3 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
                                 placeholder="John Doe"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-300 ml-1">Phone Number (Optional)</label>
+                         <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                                <Phone className="h-5 w-5" />
+                            </div>
+                            <input
+                                type="tel"
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                className="block w-full pl-10 pr-3 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+                                placeholder="+1234567890"
                             />
                         </div>
                     </div>

@@ -11,6 +11,8 @@ public class JoinEventRequest {
     private String email;
     
     private String name; // Optional participant name
+
+    private String phoneNumber; // Optional phone number for WhatsApp/SMS
     
     private java.util.Map<String, String> customFieldResponses; // fieldName -> responseValue
 }

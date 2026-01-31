@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 whatsapp-bot/node_modules/
+whatsapp-bot/auth_info_baileys/
 
 ### STS ###
 .apt_generated
